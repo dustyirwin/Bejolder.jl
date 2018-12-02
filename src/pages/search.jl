@@ -12,22 +12,21 @@ function freeze_inputs(inputs, outputs=Dict())
     return outputs
 end
 
-function query_markets(inputs::Dict, results=[])
+function query_markets(inputs::Dict, _results=[])
     keywords = split(inputs["keywords"], "___")
     i = 0
 
     @time @sync for keyword in keywords
         i += 1
 
-        if i > 1
-            # throttle scrapers for 2-3 seconds between queries
+        if i > 1  # throttle scrapers for 1-2 seconds after 1st query
             sleep(rand(1:0.1:2))
         end
 
         for market in keys(markets)
 
             if inputs[market]["enabled"] == true
-                @async push!(results, scan(
+                @async push!(_results, scan(
                     markets[market],
                     keyword,
                     inputs[market]["category"],
@@ -37,7 +36,7 @@ function query_markets(inputs::Dict, results=[])
         end # for
     end # for
 
-    return results
+    return _results
 end
 
 search = Dict(
@@ -89,6 +88,7 @@ search["page"] = node(:div, search["page_wdg"])
 search["events"] = (w, inputs) ->
     @async while true
         if inputs["load_search_btn"][] == "" && inputs["search_btn"][] > 0 || inputs["save_search_btn"][] > 0
+
             if inputs["keywords"][] == ""
                 inputs["search_btn"][] = inputs["save_search_btn"][] = 0
                 @js w alert("Please enter a search term.")
@@ -107,12 +107,11 @@ search["events"] = (w, inputs) ->
 
                 if inputs["search_btn"][] > 0
                     inputs["search_btn"][] = 0
-                    r = query_markets(freeze_inputs(inputs))
-                    r_ins = results["inputs"](inputs["keywords"][])
-                    q = Window(); title(q, results["title"]); Blink.size(q, results["size"][1], results["size"][2]);
-                    Blink.body!(q, results["page"](r_ins, r))
-                    result["events"](q, r_ins, r)
-                    continue
+                    results_inputs = results["inputs"](inputs["keywords"][])
+                    _results = query_markets(freeze_inputs(inputs))
+                    r = Window(); title(r, results["title"]); size(r, results["size"][1], results["size"][2]);
+                    body!(r, results["page"](results_inputs, _results))
+                    results["events"](r, results_inputs, _results)
                 end
 
             else
