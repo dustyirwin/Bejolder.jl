@@ -1,6 +1,7 @@
 module Bejolder
     export app
 
+    # deps
     using Dates
     using HTTP
     using Gumbo
@@ -18,6 +19,7 @@ module Bejolder
     include("./market.jl")
     include("./user.jl")
 
+    # app pages
     include("./pages/login.jl")
     include("./pages/results.jl")
     include("./pages/search.jl")
@@ -35,7 +37,9 @@ module Bejolder
         p["events"](w, p["inputs"])
     end
 
-    w = Window()
-    app = update_window(w, pages["login"])
+    function app(pages=pages)
+        w = Window()
+        update_window(w, pages["login"])
+    end
 
 end # module

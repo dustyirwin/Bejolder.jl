@@ -2,8 +2,7 @@ function validate_user(w, inputs)
     if inputs["login_btn"][] > 0
         inputs["login_btn"][] = 0
 
-        if inputs["username"][] in keys(users) && inputs["password"][] == users[inputs["username"][]]
-            println("User validated. Loading search page...")
+        if inputs["username"][] in keys(users) && inputs["password"][] == users[inputs["username"][]]["password"]
             update_window(w, pages["search"])
             return true
         else
