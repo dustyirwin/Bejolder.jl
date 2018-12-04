@@ -26,12 +26,12 @@ function query_markets(inputs::Dict, _results=[])
         for market in keys(markets)
 
             if inputs[market]["enabled"] == true
-                @async push!(_results, scan(
+                @async try push!(_results, scan(
                     markets[market],
                     keyword,
                     inputs[market]["category"],
                     inputs[market]["filters"],
-                    inputs[market]["max_pages"]))
+                    inputs[market]["max_pages"])) catch end
             end # if
         end # for
     end # for
@@ -107,9 +107,12 @@ search["events"] = (w, inputs) ->
 
                 if inputs["search_btn"][] > 0
                     inputs["search_btn"][] = 0
+
+                    r = Window()
+                    title(r, results["title"])
+                    size(r, results["size"][1], results["size"][2])
                     results_inputs = results["inputs"](inputs["keywords"][])
                     _results = query_markets(freeze_inputs(inputs))
-                    r = Window(); title(r, results["title"]); size(r, results["size"][1], results["size"][2]);
                     body!(r, results["page"](results_inputs, _results))
                     results["events"](r, results_inputs, _results)
                 end

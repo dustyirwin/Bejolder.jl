@@ -1,6 +1,6 @@
+markets = Dict()
 
-markets = Dict(
-    "chewy"=> Dict(
+markets["chewy"] = Dict(
         "name" => "chewy",
         "query" => (keywords) -> replace(keywords, " "=>"+"),
         "categories" => OrderedDict("All"=>"", "Cat"=>325, "Dog"=>288, "Small Pet"=>977),
@@ -25,9 +25,9 @@ markets = Dict(
                 ) for item_html in item_datas],
         "item_details" => (item, item_html) -> item.description = eachmatch(
             sel"section.descriptions__content", item_html.root)[1][1][1][1].text,
-        ),
+    )
 
-    "ebay"=> Dict(
+markets["ebay"] = Dict(
         "name" => "ebay",
         "query" => (keywords) -> replace("&_nkw=$keywords", " "=>"+"),
         "categories" => OrderedDict(
@@ -61,9 +61,9 @@ markets = Dict(
                 query_url,
                 ) for item_html in item_datas],
         "item_details" => (item::Item, item_html) -> item.description = "Detailed Description here",
-        ),
+    )
 
-    "amazon" => Dict(
+markets["amazon"] = Dict(
         "name" => "amazon",
         "query" => (keywords) -> replace(keywords, " "=>"+"),
         "categories" => OrderedDict(
@@ -72,10 +72,7 @@ markets = Dict(
             "Cell Phones"=>"mobile",
             "Electronics"=>"electronics",
             "Pet Supplies"=>"pets"),
-        "filters" => OrderedDict(
-            "*New"=>"",
-            "*Used"=>"",
-            "*Prime"=>"",),
+        "filters" => OrderedDict(),
         "query_url" => (query, category="aps", filters=[], page=1) ->
             "https://www.amazon.com/s/ref=nb_sb_noss_$(rand(1:2))?url=search-alias%3D$category&field-keywords=$query&rh=i%3A$category%2Ck%3A$query&lo=$category&page=$page$(join(filters))",
         "item_datas" => (response) ->
@@ -95,9 +92,9 @@ markets = Dict(
                 query_url,
                 ) for item_html in item_datas if length(item_html.attributes) > 2],
         "item_details" => (item, item_html) -> "",
-        ),
+    )
 
-    "walmart" => Dict(
+markets["walmart"] = Dict(
         "name" => "walmart",
         "query" => (keywords) -> replace(keywords, " "=>"+"),
         "categories" => OrderedDict(
@@ -127,5 +124,4 @@ markets = Dict(
             query_url) for item in item_datas["items"]],
         "item_details" => (item_html) -> OrderedDict(
             "description" => eachmatch(Selector(""), item_html.root))
-        ),
-    )
+        )
