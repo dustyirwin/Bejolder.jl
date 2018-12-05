@@ -30,16 +30,16 @@ module Bejolder
         "results"=>results,
         )
 
-    function update_window(w, p)
+    function update_window(w::Window, p::Dict)
         size(w, p["size"][1], p["size"][2])
         title(w, p["title"])
         body!(w, p["page"])
         p["events"](w, p["inputs"])
     end
 
-    function app(pages=pages)
+    function app(page::String="login", pages::Dict=pages)
         w = Window()
-        update_window(w, pages["login"])
+        update_window(w, pages[page])
     end
 
 end # module

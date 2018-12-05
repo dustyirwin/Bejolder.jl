@@ -4,10 +4,9 @@ end
 
 include("./src/Bejolder.jl")
 
-app = Bejolder.app() # julia app
+app = Bejolder.app("search") # julia app
 
-# debugging
 Bejolder.search["inputs"]["autosave_csv_chk"][]
 Bejolder.search["inputs"]["display_results_chk"][]
 r = Bejolder.query_markets(Bejolder.freeze_inputs(Bejolder.search["inputs"]))
-Bejolder.process_results(app, Bejolder.search["inputs"], r)
+Bejolder.get_search_results(app, Bejolder.freeze_inputs(Bejolder.search["inputs"]))

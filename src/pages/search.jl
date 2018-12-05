@@ -38,33 +38,37 @@ function query_markets(inputs::Dict, _results=[])
     return _results
 end
 
-function process_results(w, inputs, _results)
-    if inputs["autosave_csv_chk"][] == true
-        export_CSV(inputs["keywords"][] * ".csv", _results)
+function get_search_results(w, inputs::Dict) # frozen or json inputs
+    r = Window()
+    _results = query_markets(inputs::Dict)
+    results_inputs = results["inputs"](inputs["keywords"])
+
+    @async if search["inputs"]["autosave_csv_chk"][] == true
+        export_CSV(results_inputs["filename"][], _results)
         @js w alert("Search results saved to CSV file.")
     end
 
-    if inputs["display_results_chk"][] == true
-        r = Window()
+    @async if search["inputs"]["display_results_chk"][] == true
         title(r, results["title"])
         size(r, results["size"][1], results["size"][2])
-        results_inputs = results["inputs"](inputs["keywords"][])
         body!(r, results["page"](results_inputs, _results))
         results["events"](r, results_inputs, _results)
     end
+
+    return _results
 end
 
 search = Dict(
     "title" => "SEARCH ~ beholdia",
     "size" => (800, 525),
-    "market_inputs" => (markets) -> Dict(
+    "market_inputs" => (markets::Dict=markets) -> Dict(
         market_name => Dict(
             "enabled" => toggle(false, "$market_name.com"),
             "category" => dropdown(markets[market_name]["categories"]),
             "filters" => dropdown(markets[market_name]["filters"], multiple=true),
             "max_pages" => spinbox(1:10, label="pgs"; value=1),
         ) for market_name in keys(markets)),
-    "market_widgets"=> (market_inputs) -> Dict(market_name => vbox(
+    "market_widgets"=> (market_inputs::Dict) -> Dict(market_name => vbox(
             market_inputs[market_name]["enabled"], vskip(0.5em),
             market_inputs[market_name]["category"], vskip(0.5em),
             market_inputs[market_name]["filters"], vskip(0.5em),
@@ -80,7 +84,7 @@ search = Dict(
         )
     )
 
-search["market_inputs"] = search["market_inputs"](markets)
+search["market_inputs"] = search["market_inputs"]()
 
 search["market_widgets"] = search["market_widgets"](search["market_inputs"])
 
@@ -112,7 +116,7 @@ search["page_wdg"] = vbox(
 
 search["page"] = node(:div, search["page_wdg"])
 
-search["events"] = (w, inputs) ->
+search["events"] = (w, inputs::Dict=search["inputs"]) ->
     @async while true
         if inputs["search_btn"][] > 0 || inputs["save_json_btn"][] > 0
 
@@ -123,8 +127,7 @@ search["events"] = (w, inputs) ->
                 if occursin(".json", inputs["load_json_btn"][])
                     json_inputs = open(inputs["load_json_btn"][], "r") do f
                         JSON.parse(JSON.read(f, String)) end
-                    _results = query_markets(json_inputs)
-                    process_results(w, inputs, _results)
+                    get_search_results(w, json_inputs)
                     continue
 
                 else
@@ -149,8 +152,7 @@ search["events"] = (w, inputs) ->
                         continue end
 
                     inputs["search_btn"][] = 0
-                    _results = query_markets(freeze_inputs(inputs))
-                    process_results(w, inputs, _results)
+                    get_search_results(w, freeze_inputs(inputs))
                     continue
 
                 else

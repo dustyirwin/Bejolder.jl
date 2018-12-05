@@ -23,13 +23,13 @@ end
 results = Dict(
     "size" => (1000, 800),
     "title" => "SEARCH RESULTS ~ bejolder",
-    "inputs" => (keywords) -> Dict(
+    "inputs" => (keywords::String) -> Dict(
         "export_CSV" => button("Export to CSV"),
         "filename" => textbox(value="$(replace(keywords, " "=>"_"))_$(string(now())[1:10]).csv"),
         "save_DB" => button("Save to DB")),
     "page" => (inputs, _results) ->
         node(:div,
-            hbox(inputs["save_DB"], hskip(1em), inputs["filename"], inputs["export_CSV"]),
+            hbox(inputs["save_DB"], hskip(1em), inputs["filename"][], inputs["export_CSV"]),
             render(_results)))
 
 results["check_inputs"] = (r, inputs, _results) ->
