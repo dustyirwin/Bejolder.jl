@@ -39,7 +39,7 @@ module Bejolder
 
     function app(pages=pages)
         w = Window()
-        update_window(w, pages["login"])
+        update_window(w, pages["search"])
     end
 
 end # module
