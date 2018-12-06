@@ -10,8 +10,9 @@ module Bejolder
     using Interact
     using WebIO
     using JSON
+    using CSV
+    using DataFrames
     using Statistics
-    using JuliaDB: table
     import WebIO: render
 
     include("./brain.jl")
@@ -24,12 +25,6 @@ module Bejolder
     include("./pages/results.jl")
     include("./pages/search.jl")
 
-    pages = Dict(
-        "search"=>search,
-        "login"=>login,
-        "results"=>results,
-        )
-
     function update_window(w::Window, p::Dict)
         size(w, p["size"][1], p["size"][2])
         title(w, p["title"])
@@ -37,9 +32,9 @@ module Bejolder
         p["events"](w, p["inputs"])
     end
 
-    function app(page::String="login", pages::Dict=pages)
+    function app(page::Dict=login)
         w = Window()
-        update_window(w, pages[page])
+        update_window(w, page)
     end
 
 end # module

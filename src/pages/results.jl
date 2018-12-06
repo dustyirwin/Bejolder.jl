@@ -1,13 +1,9 @@
 function render(item::Item)
-    if item.name != nothing && item.sales_price != nothing && item.imgs != nothing
-        node(:div,
-            node(:a, item.name, attributes=Dict("href"=>item.url, "target"=>"_blank")),
-            node(:div, "\$$(collect(item.sales_price)[end][2])"),
-            node(:a, node(:img, src=item.imgs[1]), attributes=Dict("href"=>item.url, "target"=>"_blank")),
-                attributes=Dict())
-    else
-        node(:div)
-    end
+    node(:div,
+        node(:a, item.name, attributes=Dict("href"=>item.url, "target"=>"_blank")),
+        node(:div, "\$$(collect(item.sales_price)[end][2])"),
+        node(:a, node(:img, src=item.imgs[1]), attributes=Dict("href"=>item.url, "target"=>"_blank")),
+            attributes=Dict())
 end
 
 function render(items::Vector{Item})

@@ -1,7 +1,7 @@
 
 struct Item
     market::String
-    id::String
+    id::Union{String, Nothing}
     name::Union{String, Nothing}
     url::Union{String, Nothing}
     sales_price::Union{Dict{DateTime, Float64}, Nothing}
@@ -18,26 +18,15 @@ function get_stats(items, stats=Dict())
     return stats
 end
 
-function export_CSV(filename::String, results)
-    # header=[:market, :id, :name, :url, :sales_price, :sold_date, :query_url] # :shipping, :imgs, :description
+function export_CSV(filename::String, _results)
+    df = DataFrame(
+        market = [item.market for item in vcat(_results...)],
+        id = [typeof(item.id) != String ? missing : item.id for item in vcat(_results...)],
+        name = [typeof(item.name) != String ? missing : replace(item.name, ","=>"") for item in vcat(_results...)],
+        sales_price = [typeof(item.sales_price) != Dict{DateTime,Float64} ? missing : collect(item.sales_price)[end][2] for item in vcat(_results...)],
+        sold_date = [typeof(item.sold_date) != String ? missing : item.sold_date for item in vcat(_results...)],
+        url = [typeof(item.url) != String ? missing : item.url for item in vcat(_results...)],
+        query_url = [typeof(item.query_url) != String ? missing : item.query_url for item in vcat(_results...)],)
 
-    for items in results
-        t = table(
-            [item.market for item in items],
-            [item.id for item in items],
-            [try replace(item.name, ","=>"") catch end for item in items],
-            [try collect(item.sales_price)[end][2] catch end for item in items],
-            [item.sold_date for item in items],
-            [item.url for item in items],
-            [item.query_url for item in items],
-            )
-
-        open(filename, "a") do file
-            for i in 1:length(t)
-                write(file, string(t[i]))
-                write(file, "\n")
-            end
-        end
-    end
-    return
+    CSV.write(filename, df)
 end

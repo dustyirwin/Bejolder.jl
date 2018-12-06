@@ -30,7 +30,8 @@ function query_markets(inputs::Dict, _results=[])
                     keyword,
                     inputs[market]["category"],
                     inputs[market]["filters"],
-                    inputs[market]["max_pages"])) catch end
+                    inputs[market]["max_pages"]))
+                catch err; println(upper("error searching $market: ") * err) end
             end # if
         end # for
     end # for
@@ -38,14 +39,14 @@ function query_markets(inputs::Dict, _results=[])
     return _results
 end
 
-function get_search_results(w, inputs::Dict) # frozen or json inputs
+function get_search_results(inputs::Dict) # frozen or json inputs
     r = Window()
     _results = query_markets(inputs::Dict)
     results_inputs = results["inputs"](inputs["keywords"])
 
     @async if search["inputs"]["autosave_csv_chk"][] == true
         export_CSV(results_inputs["filename"][], _results)
-        @js w alert("Search results saved to CSV file.")
+        @js r alert("Search results saved to CSV file.")
     end
 
     @async if search["inputs"]["display_results_chk"][] == true
@@ -59,7 +60,7 @@ function get_search_results(w, inputs::Dict) # frozen or json inputs
 end
 
 search = Dict(
-    "title" => "SEARCH ~ beholdia",
+    "title" => "SEARCH ~ bejolder",
     "size" => (800, 525),
     "market_inputs" => (markets::Dict=markets) -> Dict(
         market_name => Dict(
@@ -127,7 +128,7 @@ search["events"] = (w, inputs::Dict=search["inputs"]) ->
                 if occursin(".json", inputs["load_json_btn"][])
                     json_inputs = open(inputs["load_json_btn"][], "r") do f
                         JSON.parse(JSON.read(f, String)) end
-                    get_search_results(w, json_inputs)
+                    get_search_results(json_inputs)
                     continue
 
                 else
@@ -152,7 +153,7 @@ search["events"] = (w, inputs::Dict=search["inputs"]) ->
                         continue end
 
                     inputs["search_btn"][] = 0
-                    get_search_results(w, freeze_inputs(inputs))
+                    get_search_results(freeze_inputs(inputs))
                     continue
 
                 else
