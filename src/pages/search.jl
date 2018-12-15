@@ -172,12 +172,12 @@ search["events"] = (w, inputs::Dict=search["inputs"]) ->
                     inputs["search_btn"][] = 0
                     get_results(w, freeze_inputs(inputs))
                     continue
-                else
+                else # no search term
                     inputs["search_btn"][] = inputs["save_json_btn"][] = 0
                     @js w alert("Enter a search term.")
                     continue
                 end
-            else
+            else # no market selected
                 inputs["search_btn"][] = inputs["save_json_btn"][] = 0
                 @js w alert("Please select at least one market to query.")
                 continue

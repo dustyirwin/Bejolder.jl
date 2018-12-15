@@ -26,15 +26,14 @@ results = Dict(
         node(:div,
             hbox(hskip(1em), inputs["filename"], inputs["export_CSV"]),
             render(_results)),
-    "check_inputs" => (r, results_inputs, _results) ->
-        if results["inputs"]["export_CSV"][] > 0
-            results["inputs"]["export_CSV"][] = 0
-            export_CSV(results_inputs["filename"][], _results)
-            @js r alert("Results saved to file!")
-            return
-        end,
     "events" => (r, results_inputs, _results) ->
         @async while true
-            results["check_inputs"](r, results_inputs, _results)
-            sleep(0.1)
+            if results_inputs["export_CSV"][] > 0
+                results_inputs["export_CSV"][] = 0
+                export_CSV(results_inputs["filename"][], _results)
+                @js r alert("Results saved to file!")
+                continue
+            else
+                sleep(0.1)
+            end
         end) # Dict
