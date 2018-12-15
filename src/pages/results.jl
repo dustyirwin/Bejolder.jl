@@ -8,7 +8,7 @@ end
 
 function render(items::Vector{Item})
     dom"div.column"(
-        node(:p, "$(uppercase(items[1].market)) - $(get_stats(items)["render"]))",
+        node(:p, "$(uppercase(items[1].market)) - $(get_prices(items)["render"]))",
         node(:ol, items...), ))
 end
 
@@ -21,29 +21,20 @@ results = Dict(
     "title" => "SEARCH RESULTS ~ bejolder",
     "inputs" => (keywords::String) -> Dict(
         "export_CSV" => button("Export to CSV"),
-        "filename" => textbox(value="$(replace(keywords, " "=>"_"))_$(string(now())[1:10]).csv"),
-        "save_DB" => button("Save to DB")),
+        "filename" => textbox(value="$(replace(keywords, " "=>"_"))_$(string(now())[1:10]).csv")),
     "page" => (inputs, _results) ->
         node(:div,
-            hbox(inputs["save_DB"], hskip(1em), inputs["filename"][], inputs["export_CSV"]),
-            render(_results)))
-
-results["check_inputs"] = (r, inputs, _results) ->
-    if inputs["export_CSV"][] > 0
-        inputs["export_CSV"][] = 0
-        export_CSV(inputs["filename"][], _results)
-        @js r alert("Results saved to file!")
-        return
-
-    elseif inputs["save_DB"][] > 0
-        inputs["save_DB"][] = 0
-        @js r alert("Items added to the DB...j/k!")
-        # todo save Items to Postgres? DB
-        return
-    end
-
-results["events"] = (r, inputs, _results) ->
-    @async while true
-        results["check_inputs"](r, inputs, _results)
-        sleep(0.1)
-    end
+            hbox(hskip(1em), inputs["filename"], inputs["export_CSV"]),
+            render(_results)),
+    "check_inputs" => (r, results_inputs, _results) ->
+        if results["inputs"]["export_CSV"][] > 0
+            results["inputs"]["export_CSV"][] = 0
+            export_CSV(results_inputs["filename"][], _results)
+            @js r alert("Results saved to file!")
+            return
+        end,
+    "events" => (r, results_inputs, _results) ->
+        @async while true
+            results["check_inputs"](r, results_inputs, _results)
+            sleep(0.1)
+        end) # Dict

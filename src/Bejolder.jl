@@ -11,8 +11,11 @@ module Bejolder
     using WebIO
     using JSON
     using CSV
+    using JLD2
     using DataFrames
     using Statistics
+    using OnlineStats
+    using Plots
     import WebIO: render
 
     include("./brain.jl")
@@ -20,21 +23,24 @@ module Bejolder
     include("./market.jl")
     include("./user.jl")
 
-    # app pages
+    # pages
     include("./pages/login.jl")
     include("./pages/results.jl")
     include("./pages/search.jl")
+    include("./pages/tracker.jl")
+    include("./pages/dash.jl")
 
-    function update_window(w::Window, p::Dict)
-        size(w, p["size"][1], p["size"][2])
-        title(w, p["title"])
-        body!(w, p["page"])
-        p["events"](w, p["inputs"])
+    function update_window(w, page::Dict)
+        size(w, page["size"][1], page["size"][2])
+        title(w, page["title"])
+        body!(w, page["page"])
+        page["events"](w)
     end
 
     function app(page::Dict=login)
         w = Window()
         update_window(w, page)
+        return w
     end
 
 end # module

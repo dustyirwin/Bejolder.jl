@@ -1,4 +1,10 @@
 user.*
+
+/builddir
+/tmp
+
 *.json
 *.csv
-/builddir
+*.ts
+
+scratch.jl

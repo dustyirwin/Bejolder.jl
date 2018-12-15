@@ -1,9 +1,9 @@
-function validate_user(w, inputs)
-    if inputs["login_btn"][] > 0
-        inputs["login_btn"][] = 0
+function validate_user(w)
+    if login["inputs"]["login_btn"][] > 0
+        login["inputs"]["login_btn"][] = 0
 
-        if inputs["username"][] in keys(users) && inputs["password"][] == users[inputs["username"][]]["password"]
-            update_window(w, pages["search"])
+        if login["inputs"]["username"][] in keys(users) && login["inputs"]["password"][] == users[login["inputs"]["username"][]]["password"]
+            update_window(w, search)
             return true
         else
             @js w alert("Incorrect username or password. Try again.")
@@ -35,7 +35,7 @@ login["page"] = node(:div,
     node(:div, login["inputs"]),
         attributes=Dict(:align=>"middle"))
 
-login["events"] = (w, inputs) ->
+login["events"] = (w) ->
     @async while true
-        validate_user(w, inputs) == true ? break : sleep(0.5)
+        validate_user(w) == true ? break : sleep(0.5)
     end

@@ -1,6 +1,7 @@
 markets = Dict()
 
 markets["chewy"] = Dict(
+    "id" => 1.0,
     "name" => "chewy",
     "query" => (keywords) -> replace(keywords, " "=>"+"),
     "categories" => OrderedDict("All"=>"", "Cat"=>325, "Dog"=>288, "Small Pet"=>977),
@@ -24,27 +25,26 @@ markets["chewy"] = Dict(
         query_url,
         ) for item_html in item_datas],
     "item_details" => (item, item_html) -> item.description = eachmatch(
-        sel"section.descriptions__content", item_html.root)[1][1][1][1].text,
-    )
+        sel"section.descriptions__content", item_html.root)[1][1][1][1].text)
 
 markets["ebay"] = Dict(
+    "id" => 2.0,
     "name" => "ebay",
-    "query" => (keywords) -> replace("&_nkw=$keywords", " "=>"+"),
+    "query" => (keywords) -> replace(keywords, " "=>"+"),
     "categories" => OrderedDict(
         "All"=>"",
         "Video Games" => "139973",
         "Video Games & Consoles" => "1249",
         "Pet Supplies" => "1281", ),
     "filters" => OrderedDict(
-        "Sold Items" => "&LH_Sold=1",
-        "Completed Items" => "&LH_Complete=1",
+        "Sold Items" => "&LH_Sold=1&LH_Complete=1",
         "US Only" => "&LH_PrefLoc=1",
         "BIN" => "&LH_BIN=1",
         "Free Shipping" => "&LH_FS=1",
         "Used - Very Good" => "&LH_ItemCondition=4000",
         "Used - Good" => "&LH_ItemCondition=5000",),
     "query_url" => (query, category="", filters=[], page=1, ipg=200) ->
-        """https://www.ebay.com/sch/i.html?_from=R40$query$(join(filters))&_dmd=2&_sacat=$category&_pgn=$page&_ipg=$ipg""",
+        """https://www.ebay.com/sch/i.html?_from=R40&_nkw=$query$(join(filters))&_dmd=2&_sacat=$category&_pgn=$page&_ipg=$ipg""",
     "item_datas" => (response) -> eachmatch(sel".s-item", parsehtml(String(response.body)).root),
     "items" => (item_datas, query_url) -> [Item(
             "ebay",  # market
@@ -60,10 +60,10 @@ markets["ebay"] = Dict(
             "Description goes here...",
             query_url,
             ) for item_html in item_datas],
-    "item_details" => (item, item_html) -> item.description = "Detailed Description here",
-    )
+    "item_details" => (item, item_html) -> item.description = "Detailed Description here")
 
 markets["amazon"] = Dict(
+    "id" => 3.0,
     "name" => "amazon",
     "query" => (keywords) -> replace(keywords, " "=>"+"),
     "categories" => OrderedDict(
@@ -92,22 +92,20 @@ markets["amazon"] = Dict(
             "description here",
             query_url,
             ) for item_html in item_datas if length(item_html.attributes) > 2],
-    "item_details" => (item, item_html) -> "",
-    )
+    "item_details" => (item, item_html) -> "")
 
 markets["walmart"] = Dict(
+    "id" => 4.0,
     "name" => "walmart",
     "query" => (keywords) -> replace(keywords, " "=>"+"),
     "categories" => OrderedDict(
         "All"=>"",
         "Video Games"=>2636,
         "Baby"=>5427,
-        "Pets"=>5440,
-        ),
+        "Pets"=>5440),
     "filters" => OrderedDict(
         "Rollback"=>"&facet=special_offers%3ARollback",
-        "2-day Shipping"=>"&facet=pickup_and_delivery%3A2-Day+Shipping",
-        ),
+        "2-day Shipping"=>"&facet=pickup_and_delivery%3A2-Day+Shipping"),
     "query_url" => (query, category="", filters=[], page=1) ->
         """http://api.walmartlabs.com/v1/search?query=$query&format=json&apiKey=$(api_keys["walmart"])""",
     "item_datas" => (response) -> JSON.parse(String(response.body)),

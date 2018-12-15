@@ -6,12 +6,13 @@ function freeze_inputs(inputs::Dict, outputs=Dict())
             "enabled" => inputs[market]["enabled"][],
             "category" => inputs[market]["category"][],
             "filters" => inputs[market]["filters"][],
-            "max_pages" => inputs[market]["max_pages"][])
+            "max_pages" => inputs[market]["max_pages"][],
+            "keywords" => inputs["keywords"][])
     end
     return outputs
 end
 
-function query_markets(inputs::Dict, _results=[])
+function query_markets(inputs::Dict, _results=[]) # frozen or json inputs
     keywords = split(inputs["keywords"], "___")
     i = 0
 
@@ -39,17 +40,17 @@ function query_markets(inputs::Dict, _results=[])
     return _results
 end
 
-function get_search_results(inputs::Dict) # frozen or json inputs
-    r = Window()
-    _results = query_markets(inputs::Dict)
+function get_results(w, inputs::Dict) # frozen or json inputs
+    _results = query_markets(inputs)
     results_inputs = results["inputs"](inputs["keywords"])
 
     @async if search["inputs"]["autosave_csv_chk"][] == true
         export_CSV(results_inputs["filename"][], _results)
-        @js r alert("Search results saved to CSV file.")
+        @js w alert("Search results saved to CSV file.")
     end
 
     @async if search["inputs"]["display_results_chk"][] == true
+        r = Window()
         title(r, results["title"])
         size(r, results["size"][1], results["size"][2])
         body!(r, results["page"](results_inputs, _results))
@@ -61,31 +62,31 @@ end
 
 search = Dict(
     "title" => "SEARCH ~ bejolder",
-    "size" => (800, 525),
-    "market_inputs" => (markets::Dict=markets) -> Dict(
+    "size" => (825, 525),
+    "market_inputs" => (markets::Dict) -> Dict(
         market_name => Dict(
-            "enabled" => toggle(false, "$market_name.com"),
+            "enabled" => toggle(false, uppercase(market_name)),
             "category" => dropdown(markets[market_name]["categories"]),
             "filters" => dropdown(markets[market_name]["filters"], multiple=true),
             "max_pages" => spinbox(1:10, label="pgs"; value=1),
-        ) for market_name in keys(markets)),
+            ) for market_name in keys(markets)),
     "market_widgets"=> (market_inputs::Dict) -> Dict(market_name => vbox(
-            market_inputs[market_name]["enabled"], vskip(0.5em),
-            market_inputs[market_name]["category"], vskip(0.5em),
-            market_inputs[market_name]["filters"], vskip(0.5em),
-            market_inputs[market_name]["max_pages"]) for market_name in keys(market_inputs)),
+        market_inputs[market_name]["enabled"], vskip(0.5em),
+        market_inputs[market_name]["category"], vskip(0.5em),
+        market_inputs[market_name]["filters"], vskip(0.5em),
+        market_inputs[market_name]["max_pages"]) for market_name in keys(market_inputs)),
     "page_inputs" => Dict(
         "keywords" => textbox("Enter search keywords here"),
         "search_btn" => button("SEARCH"),
-        "save_json_btn" => button("Save Search"),
-        "load_json_btn" => filepicker(label="Load Search"),
+        "save_json_btn" => button("Save JSON"),
+        "load_json_btn" => filepicker(label="Load search_file.json"),
         "use_json_chk" => checkbox(false, label="use .json file"),
-        "autosave_csv_chk" => checkbox(false, label="autosave results.csv"),
+        "autosave_csv_chk" => checkbox(false, label="autosave search_results.csv"),
         "display_results_chk" => checkbox(true, label="display results"),
-        )
+        "track_search_btn" => button("Track Search"))
     )
 
-search["market_inputs"] = search["market_inputs"]()
+search["market_inputs"] = search["market_inputs"](markets)
 
 search["market_widgets"] = search["market_widgets"](search["market_inputs"])
 
@@ -103,68 +104,84 @@ search["page_wdg"] = vbox(
     vskip(1.5em),
     vbox(
         hbox(
-            hskip(7em),
+            hskip(4.5em),
             search["inputs"]["search_btn"], hskip(1em),
             search["inputs"]["load_json_btn"], hskip(1em),
-            search["inputs"]["save_json_btn"]),
+            search["inputs"]["save_json_btn"], hskip(1em),
+            search["inputs"]["track_search_btn"]),
         hbox(
-            hskip(7em),
-            search["inputs"]["display_results_chk"],
+            hskip(5em),
             search["inputs"]["use_json_chk"],
-            search["inputs"]["autosave_csv_chk"]),
-        )
-    )
+            search["inputs"]["autosave_csv_chk"],
+            search["inputs"]["display_results_chk"])
+    ))
 
 search["page"] = node(:div, search["page_wdg"])
 
 search["events"] = (w, inputs::Dict=search["inputs"]) ->
     @async while true
-        if inputs["search_btn"][] > 0 || inputs["save_json_btn"][] > 0
+        if inputs["search_btn"][] > 0 || inputs["save_json_btn"][] > 0 || inputs["track_search_btn"][] > 0
 
-            # search using json file
-            if inputs["use_json_chk"][] == true && inputs["search_btn"][] > 0
-                inputs["search_btn"][] = 0
+            # proceed using json file inputs
+            if inputs["use_json_chk"][] == true
 
                 if occursin(".json", inputs["load_json_btn"][])
-                    json_inputs = open(inputs["load_json_btn"][], "r") do f
-                        JSON.parse(JSON.read(f, String)) end
-                    get_search_results(json_inputs)
-                    continue
 
+                    if inputs["search_btn"][] > 0
+                        inputs["search_btn"][] = 0
+                        json_inputs = open(inputs["load_json_btn"][], "r") do f
+                            JSON.parse(JSON.read(f, String)) end
+                        get_results(w, json_inputs)
+                        continue
+                    end
+                    if inputs["track_search_btn"][] > 0
+                        inputs["track_search_btn"][] = 0
+                        t = Window(); update_window(t, tracker); _inputs = freeze_inputs(inputs)
+                        ts = tracker["make_tracked_search"](_inputs["keywords"], _inputs, 24, _inputs)
+                        tracked_searches[_inputs["keywords"]] = ts
+                        @save "./tmp/bejolder.tks" tracked_searches
+                        @js w alert("Now tracking $(ts.name)!")
+                        continue
+                    end
                 else
-                    @js w alert("Please select a valid .json search file.")
+                    @js w alert("Please select a valid .json file.")
+                    inputs["track_search_btn"][] = inputs["search_btn"][] = 0
                     continue
                 end
             end
 
-            # search using UI
+            # proceed using UI inputs
             if true in [inputs[market]["enabled"][] for market in keys(markets)]
 
                 if inputs["keywords"][] != ""
-
                     # save search settings
                     if inputs["save_json_btn"][] > 0
                         inputs["save_json_btn"][] = 0
-
                         filename = inputs["keywords"][] * ".json"
                         open(filename, "w") do f
                             JSON.write(f, json(freeze_inputs(inputs))) end
                         @js w alert("Search settings saved to .json file.")
-                        continue end
+                        continue
+                    elseif inputs["track_search_btn"][] > 0
+                        inputs["track_search_btn"][] = 0
+                        t = Window(); update_window(t, tracker)
+                        tracker["make_tracked_search"](freeze_inputs(inputs))
+                        continue
+                    end
 
                     inputs["search_btn"][] = 0
-                    get_search_results(freeze_inputs(inputs))
+                    get_results(w, freeze_inputs(inputs))
                     continue
-
                 else
                     inputs["search_btn"][] = inputs["save_json_btn"][] = 0
                     @js w alert("Enter a search term.")
-                    continue end
-
+                    continue
+                end
             else
                 inputs["search_btn"][] = inputs["save_json_btn"][] = 0
                 @js w alert("Please select at least one market to query.")
-                continue end
+                continue
+            end
 
         else
             sleep(0.1)

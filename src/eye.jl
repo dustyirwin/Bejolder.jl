@@ -18,22 +18,26 @@ end
 
 function scan(market::Dict, keywords, category="", filters=[], max_pages=1, headers=headers)
     items = []
+    headers = headers[rand(1:length(headers))]
 
-    for page in 1:max_pages
+    @sync for page in 1:max_pages
         query = market["query"](keywords)
         query_url = market["query_url"](query, category, filters, page)
-        println("$(market["name"]) query url: $query_url")
-        response = HTTP.get(query_url, headers=headers[rand(1:length(headers))])
-        item_datas = market["item_datas"](response)
+        println("$(uppercase(market["name"])) query url: $query_url")
 
-        # todo: saveItem(s) to db, maybe make checkbox option?
-        if page == 1
-            items = market["items"](item_datas, query_url)
-        else
-            sleep(rand(1:0.1:2))
-            append!(items, market["items"](item_datas, query_url))
-        end
-    end
+        @time @async begin
+            if page == 1
+                response = HTTP.get(query_url, headers)
+                item_datas = market["item_datas"](response)
+                items = market["items"](item_datas, query_url)
+            else
+                sleep(page*rand(2:0.1:3)) # throttle
+                response = HTTP.get(query_url, headers)
+                item_datas = market["item_datas"](response)
+                append!(items, market["items"](item_datas, query_url))
+            end # if
+        end # begin
+    end # for
 
     return items
 end
