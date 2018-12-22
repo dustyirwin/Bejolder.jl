@@ -20,7 +20,7 @@ module Bejolder
 
     include("./brain.jl")
     include("./eye.jl")
-    include("./market.jl")
+    include("./markets.jl")
     include("./user.jl")
 
     # pages

@@ -1,17 +1,3 @@
-function validate_user(w)
-    if login["inputs"]["login_btn"][] > 0
-        login["inputs"]["login_btn"][] = 0
-
-        if login["inputs"]["username"][] in keys(users) && login["inputs"]["password"][] == users[login["inputs"]["username"][]]["password"]
-            update_window(w, search)
-            return true
-        else
-            @js w alert("Incorrect username or password. Try again.")
-            return false
-        end
-    end
-end
-
 login = Dict(
     "title" => "LOGIN ~ beholdia",
     "size" => (500, 600),

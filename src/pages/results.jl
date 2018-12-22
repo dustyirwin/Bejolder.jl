@@ -12,8 +12,8 @@ function render(items::Vector{Item})
         node(:ol, items...), ))
 end
 
-function render(_results::Array{Any,1})
-    dom"div.columns"(_results...)
+function render(results::Array{Any,1})
+    dom"div.columns"(results...)
 end
 
 results = Dict(
@@ -30,8 +30,8 @@ results = Dict(
         @async while true
             if results_inputs["export_CSV"][] > 0
                 results_inputs["export_CSV"][] = 0
-                export_CSV(results_inputs["filename"][], _results)
-                @js r alert("Results saved to file!")
+                export_CSV("./tmp/" * results_inputs["filename"][], _results)
+                @js r alert("Results saved to .csv file!")
                 continue
             else
                 sleep(0.1)
