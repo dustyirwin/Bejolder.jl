@@ -16,15 +16,26 @@ function render(results::Array{Any,1})
     dom"div.columns"(results...)
 end
 
+function render(queries::Vector{Query})
+    dom"div.columns"(queries...)
+end
+
+function render(query::Query)
+    node(:div, plot(query.plot_obs, layout=1, ylab="\$", xlab="#obs",
+        title="$(uppercase(query.market)): $(query.keywords) $(query.category) $(query.filters)"))
+end
+
+
 results = Dict(
     "size" => (1000, 800),
     "title" => "SEARCH RESULTS ~ bejolder",
     "inputs" => (keywords::String) -> Dict(
         "export_CSV" => button("Export to CSV"),
         "filename" => textbox(value="$(replace(keywords, " "=>"_"))_$(string(now())[1:10]).csv")),
-    "page" => (inputs, _results) ->
+    "page" => (inputs, _results, _search) ->
         node(:div,
             hbox(hskip(1em), inputs["filename"], inputs["export_CSV"]),
+            render(_search.queries),
             render(_results)),
     "events" => (r, results_inputs, _results) ->
         @async while true

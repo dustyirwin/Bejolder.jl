@@ -139,7 +139,7 @@ function process_results(w, inputs::Dict, _search=nothing) # frozen inputs or se
         r = Window()
         title(r, results["title"])
         size(r, results["size"][1], results["size"][2])
-        body!(r, results["page"](results_inputs, _results))
+        body!(r, results["page"](results_inputs, _results, _search))
         results["events"](r, results_inputs, _results)
     end
 end
