@@ -12,8 +12,8 @@ function render(items::Vector{Item})
         node(:ol, items...), ))
 end
 
-function render(results::Array{Any,1})
-    dom"div.columns"(results...)
+function render(_results::Array{Any,1})
+    dom"div.columns"(_results...)
 end
 
 function render(queries::Vector{Query})

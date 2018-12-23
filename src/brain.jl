@@ -30,12 +30,25 @@ struct Search
     runs::Array{Any}
 end
 
-function validate_user(w)
+function update_window(w::Window, page::Dict)
+    size(w, page["size"][1], page["size"][2])
+    title(w, page["title"])
+    body!(w, page["page"])
+    page["events"](w)
+    return w
+end
+
+function app(page::Dict=login)
+    w = Window()
+    update_window(w, page)
+end
+
+function validate_user(w::Window)
     if login["inputs"]["login_btn"][] > 0
         login["inputs"]["login_btn"][] = 0
 
         if login["inputs"]["username"][] in keys(users) && login["inputs"]["password"][] == users[login["inputs"]["username"][]]["password"]
-            update_window(w, search)
+            update_window(w, tracker)
             return true
         else
             @js w alert("Incorrect username or password. Try again.")
@@ -44,14 +57,14 @@ function validate_user(w)
     end
 end
 
-function get_prices(items, stats=Dict())
+function get_prices(items::Vector{Item}, stats=Dict())
     stats["prices"] = [
         collect(item.sales_price)[end][2] for item in items if item.sales_price != nothing && collect(item.sales_price)[end][2] > 0 ]
     stats["render"] = "valid item count: $(length(stats["prices"])) mean: \$$(round(mean(stats["prices"]))) std dev: \$$(round(std(stats["prices"])))"
     return stats
 end
 
-function export_CSV(filename::String, _results)
+function export_CSV(filename::String, _results::Array{Any,1})
     df = DataFrame(
         market = [item.market for item in vcat(_results...)],
         id = [typeof(item.id) != String ? missing : item.id for item in vcat(_results...)],
@@ -78,7 +91,8 @@ function freeze_inputs(inputs::Dict, outputs=Dict())
     return outputs
 end
 
-function make_query(name::String, keywords::String, category, filters, max_pages)
+function make_query(name::String, keywords::String, category::Union{Int64,String},
+    filters::Union{String,Array{String,1}}, max_pages::Int64)
     query_url = markets[name]["query_url"](replace(keywords, " "=>"+"), category, filters)
     univariate_stats = Series(Mean(),Variance(),Extrema(),Quantile(),Moments(),Sum())
     m = StatLearn(3, .5 * L2DistLoss(), NoPenalty(), SGD(), rate = LearningRate(.6))
@@ -102,7 +116,7 @@ function make_search(search_name::String, interval::Hour, inputs::Dict, queries=
     return Search(search_name, interval, queries, [])
 end
 
-function process_search(_search::Search, _results=[])
+function process_search(_search::Search, _results::Array{Any,1}=[])
     @sync @async for q in _search.queries
         r = scan(markets[q.market], q.keywords, q.category, q.filters, q.max_pages)
         push!(_results, r)
@@ -120,7 +134,7 @@ function process_search(_search::Search, _results=[])
     return _search, _results
 end
 
-function process_results(w, inputs::Dict, _search=nothing) # frozen inputs or search
+function process_results(w::Window, inputs::Dict, _search=nothing) # frozen inputs or search
     results_inputs = results["inputs"](inputs["keywords"])
 
     if _search == nothing

@@ -1,5 +1,5 @@
 login = Dict(
-    "title" => "LOGIN ~ beholdia",
+    "title" => "LOGIN ~ bejolder",
     "size" => (500, 600),
     "username" => textbox("enter username", attributes=Dict("size"=>50)),
     "password"=> textbox("enter password", typ="password"),

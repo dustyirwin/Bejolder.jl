@@ -1,6 +1,6 @@
 search = Dict(
     "title" => "SEARCH ~ bejolder",
-    "size" => (825, 525),
+    "size" => (825, 575),
     "market_inputs" => (markets::Dict) -> Dict(
         market_name => Dict(
             "enabled" => toggle(false, uppercase(market_name)),
@@ -16,8 +16,8 @@ search = Dict(
     "page_inputs" => Dict(
         "keywords" => textbox("Enter search keywords here"),
         "search_btn" => button("SEARCH"),
-        "load_file_btn" => filepicker("choose a .ts file..."),
-        "use_file_chk" => checkbox(false, label="use .ts file"),
+        "load_search_btn" => filepicker("choose a .bjs file..."),
+        "use_file_chk" => checkbox(false, label="use .bjs file"),
         "autosave_csv_chk" => checkbox(false, label="autosave .csv"),
         "display_results_chk" => checkbox(true, label="display results"),
         "save_search_btn" => button("Save Search"))
@@ -41,12 +41,12 @@ search["page_wdg"] = vbox(
     vskip(1.5em),
     vbox(
         hbox(
-            hskip(8em),
+            hskip(6em),
             search["inputs"]["search_btn"], hskip(1em),
-            search["inputs"]["load_file_btn"], hskip(1em),
+            search["inputs"]["load_search_btn"], hskip(1em),
             search["inputs"]["save_search_btn"]),
         hbox(
-            hskip(8em),
+            hskip(6em),
             search["inputs"]["use_file_chk"],
             search["inputs"]["autosave_csv_chk"],
             search["inputs"]["display_results_chk"])
@@ -62,13 +62,12 @@ search["events"] = (w, inputs::Dict=search["inputs"]) ->
             if inputs["use_file_chk"][] == true
 
                 try
-                    JLD2.@load inputs["load_file_btn"][] _search
-                    eval(_search)
-                    println("$(inputs["load_file_btn"][]) file loaded!")
+                    JLD2.@load inputs["load_search_btn"][] _search
+                    println("$(inputs["load_search_btn"][]) file loaded!")
 
                     if inputs["save_search_btn"][] > 0
                         inputs["save_search_btn"][] = 0
-                        JLD2.@save inputs["load_file_btn"][] _search
+                        JLD2.@save "./tmp/" * inputs["load_file_btn"][] _search
                         @js w alert("Search saved to file.")
                     end
                     if inputs["search_btn"][] > 0
@@ -81,7 +80,7 @@ search["events"] = (w, inputs::Dict=search["inputs"]) ->
                 catch err
                     #println(err)
                     inputs["save_search_btn"][] = inputs["search_btn"][] = 0
-                    @js w alert("Please select a valid .ts file.")
+                    @js w alert("Please select a valid .bjs file.")
                     continue
                 end
 
@@ -93,9 +92,9 @@ search["events"] = (w, inputs::Dict=search["inputs"]) ->
 
                     if inputs["save_search_btn"][] > 0
                         inputs["save_search_btn"][] = 0
-                        filename = "./tmp/" * inputs["keywords"][] * "_$(string(now())[1:10])" * ".ts"
+                        filename = "./tmp/" * inputs["keywords"][] * "_$(string(now())[1:10])" * ".bjs"
                         JLD2.@save filename _search
-                        @js w alert("Search saved to file.")
+                        @js w alert("Search saved to .bjs file.")
                     end
                     if inputs["search_btn"][] > 0
                         inputs["search_btn"][] = 0
