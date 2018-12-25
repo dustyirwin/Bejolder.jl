@@ -29,19 +29,28 @@ results = Dict(
     "size" => (1000, 800),
     "title" => "SEARCH RESULTS ~ bejolder",
     "inputs" => (keywords::String) -> Dict(
-        "export_CSV" => button("Export to CSV"),
-        "filename" => textbox(value="$(replace(keywords, " "=>"_"))_$(string(now())[1:10]).csv")),
-    "page" => (inputs, _results, _search) ->
+        "export_CSV" => button("Export Data to CSV"),
+        "filename_CSV" => textbox(value="$(replace(keywords, " "=>"_"))_$(string(now())[1:10]).csv"),
+        "save_search_btn" => button("Save Search"),
+        "filename_BJS" => textbox(value="$(replace(keywords, " "=>"_"))_$(string(now())[1:10]).bjs")),
+    "page" => (inputs::Dict, _results::Vector{Any}, _search::Search) ->
         node(:div,
-            hbox(hskip(1em), inputs["filename"], inputs["export_CSV"]),
+            hbox(
+                hskip(1em), inputs["filename_CSV"], hskip(0.5em), inputs["export_CSV"],
+                hskip(1em), inputs["filename_BJS"], hskip(0.5em), inputs["save_search_btn"],),
             render(_search.queries),
             render(_results)),
-    "events" => (r, results_inputs, _results) ->
+    "events" => (r::Window, inputs::Dict, _results::Vector{Any}, _search::Search) ->
         @async while true
-            if results_inputs["export_CSV"][] > 0
-                results_inputs["export_CSV"][] = 0
-                export_CSV("./tmp/" * results_inputs["filename"][], _results)
+            if inputs["export_CSV"][] > 0
+                inputs["export_CSV"][] = 0
+                export_CSV("./tmp/" * inputs["filename_CSV"][], _results)
                 @js r alert("Results saved to .csv file!")
+                continue
+            elseif inputs["save_search_btn"][] > 0
+                inputs["save_search_btn"][] = 0
+                JLD2.@save "./tmp/" * inputs["filename_BJS"][] _search
+                @js r alert("Search saved to file.")
                 continue
             else
                 sleep(0.1)

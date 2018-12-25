@@ -8,11 +8,12 @@ search = Dict(
             "filters" => dropdown(markets[market_name]["filters"], multiple=true),
             "max_pages" => spinbox(1:10, label="pgs"; value=1),
             ) for market_name in keys(markets)),
-    "market_widgets"=> (market_inputs::Dict) -> Dict(market_name => vbox(
-        market_inputs[market_name]["enabled"], vskip(0.5em),
-        market_inputs[market_name]["category"], vskip(0.5em),
-        market_inputs[market_name]["filters"], vskip(0.5em),
-        market_inputs[market_name]["max_pages"]) for market_name in keys(market_inputs)),
+    "market_widgets"=> (market_inputs::Dict) -> Dict(
+        market_name => vbox(
+            market_inputs[market_name]["enabled"], vskip(0.5em),
+            market_inputs[market_name]["category"], vskip(0.5em),
+            market_inputs[market_name]["filters"], vskip(0.5em),
+            market_inputs[market_name]["max_pages"]) for market_name in keys(market_inputs)),
     "page_inputs" => Dict(
         "keywords" => textbox("Enter search keywords here"),
         "search_btn" => button("SEARCH"),
@@ -52,9 +53,9 @@ search["page_wdg"] = vbox(
             search["inputs"]["display_results_chk"])
     ))
 
-search["page"] = node(:div, search["page_wdg"])
+search["page"] = () -> node(:div, search["page_wdg"])
 
-search["events"] = (w, inputs::Dict=search["inputs"]) ->
+search["events"] = (w::Window, inputs=search["inputs"]) ->
     @async while true
         if inputs["search_btn"][] > 0 || inputs["save_search_btn"][] > 0
 

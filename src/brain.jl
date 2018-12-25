@@ -30,8 +30,10 @@ struct Search
     runs::Array{Any}
 end
 
-### general funcs ###
-function app(page::Dict=login)
+function app(page=login)
+    #WebIO host
+    #using Mux
+    #webio_serve(page("/", req -> login["page"]))
     w = Window()
     update_window(w, page)
 end
@@ -39,12 +41,12 @@ end
 function update_window(w::Window, page::Dict)
     size(w, page["size"][1], page["size"][2])
     title(w, page["title"])
-    body!(w, page["page"])
+    body!(w, page["page"]())
     page["events"](w)
     return w
 end
 
-function get_prices(items::Vector{Item}, stats::Dict=Dict())
+function get_prices(items::Vector{Item}, stats=Dict())
     stats["prices"] = [
         collect(item.sales_price)[end][2] for item in items if item.sales_price != nothing && collect(item.sales_price)[end][2] > 0 ]
     stats["render"] = "valid item count: $(length(stats["prices"])) mean: \$$(round(mean(stats["prices"]))) std dev: \$$(round(std(stats["prices"])))"
@@ -64,8 +66,7 @@ function export_CSV(filename::String, _results::Array{Any,1})
     CSV.write(filename, df)
 end
 
-### search page ###
-function freeze_inputs(inputs::Dict, outputs::Dict=Dict())
+function freeze_inputs(inputs::Dict, outputs=Dict())
     outputs["keywords"] = inputs["keywords"][]
 
     for market in keys(markets)
@@ -79,8 +80,7 @@ function freeze_inputs(inputs::Dict, outputs::Dict=Dict())
     return outputs
 end
 
-function make_query(name::String, keywords::String, category::Union{Int64,String},
-    filters::Union{String,Array{String,1}}, max_pages::Int64)
+function make_query(name::String, keywords::String, category::Union{Int64,String}, filters::Union{String,Array{String,1}}, max_pages::Int64)
     query_url = markets[name]["query_url"](replace(keywords, " "=>"+"), category, filters)
     univariate_stats = Series(Mean(),Variance(),Extrema(),Quantile(),Moments(),Sum())
     m = StatLearn(3, .5 * L2DistLoss(), NoPenalty(), SGD(), rate = LearningRate(.6))
@@ -142,7 +142,8 @@ function process_results(w::Window, inputs::Dict, _search=nothing) # frozen inpu
         title(r, results["title"])
         size(r, results["size"][1], results["size"][2])
         body!(r, results["page"](results_inputs, _results, _search))
-        results["events"](r, results_inputs, _results)
+        results["events"](r, results_inputs, _results, _search)
     end
+
     return _search, _results
 end

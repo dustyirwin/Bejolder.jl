@@ -28,38 +28,42 @@ function render(_search::Search)
 end
 
 tracker = Dict(
-    "title" => "TRACKER ~ bejolder",
-    "size" => (790, 360),
     "searches" =>
         try JLD2.@load "./tmp/_searches.bjd" searches; searches
         catch
-            searches = Dict(
+            Dict(
                 "active"=>OrderedCollections.OrderedDict(),
                 "inactive"=>OrderedCollections.OrderedDict())
-        end
+        end)
+
+_tracker = Dict(
+    "title" => "TRACKER ~ bejolder",
+    "size" => (790, 360),
+    "inputs" => Dict(
+        "push_right_btn"=>button(">>"),
+        "push_left_btn"=>button("<<"),
+        "show_info_btn"=>button("Show Search Info(s)"),
+        "load_search_btn"=>filepicker("choose .bjs file..."),
+        "track_search_btn"=>button("^^ Track Search ^^"),
+        "save_search_btn"=>button("Save Search(s)"),
+        "create_search_btn"=>button("Create Search"),
+        "remove_search_btn"=>button("Remove Search(s)"),
+        "active" => (tracker=tracker) -> dropdown(
+            tracker["searches"]["active"], label="ACTIVE SEARCHES", multiple=true),
+        "inactive" => (tracker=tracker) -> dropdown(
+            tracker["searches"]["inactive"], label="INACTIVE SEARCHES", multiple=true))
     )
 
-tracker["inputs"] = Dict(
-    "active"=>dropdown(tracker["searches"]["active"], label="ACTIVE SEARCHES", multiple=true),
-    "inactive"=>dropdown(tracker["searches"]["inactive"], label="INACTIVE SEARCHES", multiple=true),
-    "push_right_btn"=>button(">>"),
-    "push_left_btn"=>button("<<"),
-    "show_info_btn"=>button("Show Search Info(s)"),
-    "load_search_btn"=>filepicker("choose .bjs file..."),
-    "track_search_btn"=>button("^^ Track Search ^^"),
-    "save_search_btn"=>button("Save Search(s)"),
-    "create_search_btn"=>button("Create Search"),
-    "remove_search_btn"=>button("Remove Search(s)")
-    )
+tracker = merge(tracker, _tracker)
 
-tracker["page"] = node(:div,
+tracker["page"] = (tracker=tracker) -> node(:div,
     vbox(
         hbox(hskip(2em),
-            tracker["inputs"]["active"], hskip(1em),
+            tracker["inputs"]["inactive"](tracker), hskip(1em),
             vbox(vskip(3em),
                 tracker["inputs"]["push_right_btn"],
                 tracker["inputs"]["push_left_btn"]), hskip(1em),
-            tracker["inputs"]["inactive"]),
+            tracker["inputs"]["active"](tracker)),
         hbox(hskip(1em),
             tracker["inputs"]["track_search_btn"], hskip(1em),
             tracker["inputs"]["load_search_btn"]),
@@ -68,9 +72,9 @@ tracker["page"] = node(:div,
             tracker["inputs"]["show_info_btn"], hskip(1em),
             tracker["inputs"]["remove_search_btn"], hskip(1em),
             tracker["inputs"]["create_search_btn"]))
-    ); # node
+    ) # node
 
-tracker["events"] = (w::Window, inputs::Dict=tracker["inputs"]) ->
+tracker["events"] = (w::Window, inputs=tracker["inputs"]) ->
     @async while true  # UI events
         if inputs["track_search_btn"][] > 0
             inputs["track_search_btn"][] = 0
@@ -81,18 +85,17 @@ tracker["events"] = (w::Window, inputs::Dict=tracker["inputs"]) ->
             else
                 try
                     JLD2.@load inputs["load_search_btn"][] _search; _search
+                    searches = tracker["searches"]
+                    searches["inactive"][_search.name] = inputs["load_search_btn"][]
+                    JLD2.@save "./tmp/_searches.bjd" searches
+                    @js w alert("Search added to inactive searches.")
+                    update_window(w, tracker)
+
                 catch err  # invalid file error
                     println(err)
                     @js w alert("Invalid Search file specified. Is this a .bjs file?")
                     continue
                 end
-
-                searches = tracker["searches"]
-                searches["inactive"][_search.name] = inputs["load_search_btn"][]
-                JLD2.@save "./tmp/_searches.bjd" searches
-                @js w alert("Search added to inactive searches.")
-                body!(w, tracker["page"])
-                continue
             end
 
         elseif inputs["create_search_btn"][] > 0
@@ -103,8 +106,6 @@ tracker["events"] = (w::Window, inputs::Dict=tracker["inputs"]) ->
             sleep(0.1)
         end
     end
-
-tracker["inputs"]["active"][]
 
 function track_searches()
     @async while true

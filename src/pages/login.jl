@@ -7,7 +7,7 @@ login = Dict(
         "login_btn"=>button("LOGIN"))
     )
 
-login["page"] = node(:div,
+login["page"] = () -> node(:div,
     node(:br),
     node(:img, attributes=Dict(
         "src"=>"https://elmordyn.files.wordpress.com/2012/07/20110223084209-beholder.gif")),
