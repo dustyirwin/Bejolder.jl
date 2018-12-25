@@ -20,8 +20,7 @@ search = Dict(
         "load_search_btn" => filepicker("choose a .bjs file..."),
         "use_file_chk" => checkbox(false, label="use .bjs file"),
         "autosave_csv_chk" => checkbox(false, label="autosave .csv"),
-        "display_results_chk" => checkbox(true, label="display results"),
-        "save_search_btn" => button("Save Search"))
+        "display_results_chk" => checkbox(true, label="display results"))
     )
 
 search["market_inputs"] = search["market_inputs"](markets)
@@ -44,8 +43,7 @@ search["page_wdg"] = vbox(
         hbox(
             hskip(6em),
             search["inputs"]["search_btn"], hskip(1em),
-            search["inputs"]["load_search_btn"], hskip(1em),
-            search["inputs"]["save_search_btn"]),
+            search["inputs"]["load_search_btn"], hskip(1em)),
         hbox(
             hskip(6em),
             search["inputs"]["use_file_chk"],
@@ -57,31 +55,19 @@ search["page"] = () -> node(:div, search["page_wdg"])
 
 search["events"] = (w::Window, inputs=search["inputs"]) ->
     @async while true
-        if inputs["search_btn"][] > 0 || inputs["save_search_btn"][] > 0
+        if inputs["search_btn"][] > 0
+            inputs["search_btn"][] = 0
 
-            # proceed using search file
             if inputs["use_file_chk"][] == true
-
                 try
                     JLD2.@load inputs["load_search_btn"][] _search
                     println("$(inputs["load_search_btn"][]) file loaded!")
-
-                    if inputs["save_search_btn"][] > 0
-                        inputs["save_search_btn"][] = 0
-                        JLD2.@save "./tmp/" * inputs["load_file_btn"][] _search
-                        @js w alert("Search saved to file.")
-                        continue
-                    end
-                    if inputs["search_btn"][] > 0
-                        inputs["search_btn"][] = 0
-                        inputs["keywords"][] = _search.name
-                        process_results(w, freeze_inputs(inputs), _search)
-                        continue
-                    end
+                    inputs["keywords"][] = _search.name
+                    process_results(w, freeze_inputs(inputs), _search)
+                    continue
 
                 catch err
-                    #println(err)
-                    inputs["save_search_btn"][] = inputs["search_btn"][] = 0
+                    println(err)
                     @js w alert("Please select a valid .bjs file.")
                     continue
                 end
