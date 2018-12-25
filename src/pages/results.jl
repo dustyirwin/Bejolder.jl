@@ -12,19 +12,18 @@ function render(items::Vector{Item})
         node(:ol, items...), ))
 end
 
-function render(_results::Array{Any,1})
-    dom"div.columns"(_results...)
+function render(query::Query)
+    node(:div, plot(query.plot_obs, layout=1, ylab="\$", xlab="#obs",
+        title="$(uppercase(query.market)): $(query.keywords)"))
 end
 
 function render(queries::Vector{Query})
     dom"div.columns"(queries...)
 end
 
-function render(query::Query)
-    node(:div, plot(query.plot_obs, layout=1, ylab="\$", xlab="#obs",
-        title="$(uppercase(query.market)): $(query.keywords) $(query.category) $(query.filters)"))
+function render(_results::Vector{Any})
+    dom"div.columns"(_results...)
 end
-
 
 results = Dict(
     "size" => (1000, 800),

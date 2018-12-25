@@ -30,6 +30,12 @@ struct Search
     runs::Array{Any}
 end
 
+### general funcs ###
+function app(page::Dict=login)
+    w = Window()
+    update_window(w, page)
+end
+
 function update_window(w::Window, page::Dict)
     size(w, page["size"][1], page["size"][2])
     title(w, page["title"])
@@ -38,26 +44,7 @@ function update_window(w::Window, page::Dict)
     return w
 end
 
-function app(page::Dict=login)
-    w = Window()
-    update_window(w, page)
-end
-
-function validate_user(w::Window)
-    if login["inputs"]["login_btn"][] > 0
-        login["inputs"]["login_btn"][] = 0
-
-        if login["inputs"]["username"][] in keys(users) && login["inputs"]["password"][] == users[login["inputs"]["username"][]]["password"]
-            update_window(w, tracker)
-            return true
-        else
-            @js w alert("Incorrect username or password. Try again.")
-            return false
-        end
-    end
-end
-
-function get_prices(items::Vector{Item}, stats=Dict())
+function get_prices(items::Vector{Item}, stats::Dict=Dict())
     stats["prices"] = [
         collect(item.sales_price)[end][2] for item in items if item.sales_price != nothing && collect(item.sales_price)[end][2] > 0 ]
     stats["render"] = "valid item count: $(length(stats["prices"])) mean: \$$(round(mean(stats["prices"]))) std dev: \$$(round(std(stats["prices"])))"
@@ -77,7 +64,8 @@ function export_CSV(filename::String, _results::Array{Any,1})
     CSV.write(filename, df)
 end
 
-function freeze_inputs(inputs::Dict, outputs=Dict())
+### search page ###
+function freeze_inputs(inputs::Dict, outputs::Dict=Dict())
     outputs["keywords"] = inputs["keywords"][]
 
     for market in keys(markets)
@@ -116,7 +104,7 @@ function make_search(search_name::String, interval::Hour, inputs::Dict, queries=
     return Search(search_name, interval, queries, [])
 end
 
-function process_search(_search::Search, _results::Array{Any,1}=[])
+function process_search(_search::Search, _results=[])
     @sync @async for q in _search.queries
         r = scan(markets[q.market], q.keywords, q.category, q.filters, q.max_pages)
         push!(_results, r)
@@ -156,4 +144,5 @@ function process_results(w::Window, inputs::Dict, _search=nothing) # frozen inpu
         body!(r, results["page"](results_inputs, _results, _search))
         results["events"](r, results_inputs, _results)
     end
+    return _search, _results
 end

@@ -4,8 +4,8 @@ Pkg.activate(".")
 
 include("./src/Bejolder.jl")
 
-#if Blink do
-Bejolder.app()
+#Blink window
+app()
 
-#if WebIO do
-#something else
+#WebIO host
+# something else

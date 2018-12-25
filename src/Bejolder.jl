@@ -1,30 +1,28 @@
-module Bejolder
-    # deps
-    using Dates
-    using HTTP
-    using Gumbo
-    using Cascadia
-    using Blink
-    using Interact
-    using WebIO
-    using JSON
-    using CSV
-    using JLD2
-    using Plots
-    using DataFrames
-    using Statistics
-    using OnlineStats
-    using OrderedCollections
-    import WebIO: render
+# deps
+using Dates
+using HTTP
+using Gumbo
+using Cascadia
+using Blink
+using Interact
+using WebIO
+using JSON
+using CSV
+using JLD2
+using Plots
+using DataFrames
+using Statistics
+using OnlineStats
+using OrderedCollections
+import WebIO: render
 
-    include("./brain.jl")
-    include("./eye.jl")
-    include("./markets.jl")
-    include("./user.jl")
+include("./brain.jl")
+include("./eye.jl")
+include("./markets.jl")
+include("./user.jl")
 
-    # pages
-    include("./pages/login.jl")
-    include("./pages/results.jl")
-    include("./pages/search.jl")
-    include("./pages/tracker.jl")
-end
+# pages
+include("./pages/login.jl")
+include("./pages/results.jl")
+include("./pages/search.jl")
+include("./pages/tracker.jl")

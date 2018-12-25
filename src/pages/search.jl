@@ -1,6 +1,6 @@
 search = Dict(
     "title" => "SEARCH ~ bejolder",
-    "size" => (825, 575),
+    "size" => (850, 575),
     "market_inputs" => (markets::Dict) -> Dict(
         market_name => Dict(
             "enabled" => toggle(false, uppercase(market_name)),
@@ -69,13 +69,14 @@ search["events"] = (w, inputs::Dict=search["inputs"]) ->
                         inputs["save_search_btn"][] = 0
                         JLD2.@save "./tmp/" * inputs["load_file_btn"][] _search
                         @js w alert("Search saved to file.")
+                        continue
                     end
                     if inputs["search_btn"][] > 0
                         inputs["search_btn"][] = 0
                         inputs["keywords"][] = _search.name
                         process_results(w, freeze_inputs(inputs), _search)
+                        continue
                     end
-                    continue
 
                 catch err
                     #println(err)
@@ -88,19 +89,20 @@ search["events"] = (w, inputs::Dict=search["inputs"]) ->
             elseif true in [inputs[market]["enabled"][] for market in keys(markets)]
 
                 if inputs["keywords"][] != ""
-                    _search = make_search(inputs["keywords"][], Hour(1), freeze_inputs(inputs))
+                    _search = make_search(inputs["keywords"][], Hour(24), freeze_inputs(inputs))
 
                     if inputs["save_search_btn"][] > 0
                         inputs["save_search_btn"][] = 0
                         filename = "./tmp/" * inputs["keywords"][] * "_$(string(now())[1:10])" * ".bjs"
                         JLD2.@save filename _search
                         @js w alert("Search saved to .bjs file.")
+                        continue
                     end
                     if inputs["search_btn"][] > 0
                         inputs["search_btn"][] = 0
                         process_results(w, freeze_inputs(inputs), _search)
+                        continue
                     end
-                    continue
 
                 else # no search term error msg
                     inputs["search_btn"][] = inputs["save_search_btn"][] = 0
