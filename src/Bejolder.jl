@@ -17,9 +17,9 @@ using OrderedCollections
 import WebIO: render
 
 include("./brain.jl")
-include("./eye.jl")
+include("./eyes.jl")
 include("./markets.jl")
-include("./user.jl")
+include("./users.jl")
 
 # pages
 include("./pages/login.jl")

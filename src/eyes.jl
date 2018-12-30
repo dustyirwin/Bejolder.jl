@@ -14,7 +14,7 @@ function stare(market::Dict, item, headers=headers)
     item = merge(item, item_details)
     # todo: saveItem to db
     return item
-end
+end # ::Item
 
 function scan(market::Dict, keywords, category="", filters=[], max_pages=1, headers=headers)
     items = []
@@ -40,4 +40,11 @@ function scan(market::Dict, keywords, category="", filters=[], max_pages=1, head
     end # for
 
     return items
-end
+end # ::Vector{Item}
+
+function get_prices(items::Vector{Item}, stats=Dict())
+    stats["prices"] = [
+        collect(item.sales_price)[end][2] for item in items if item.sales_price != nothing && collect(item.sales_price)[end][2] > 0 ]
+    stats["render"] = "valid item count: $(length(stats["prices"])) mean: \$$(round(mean(stats["prices"]))) std dev: \$$(round(std(stats["prices"])))"
+    return stats
+end # ::Dict

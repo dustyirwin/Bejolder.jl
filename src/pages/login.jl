@@ -20,8 +20,7 @@ login["page"] = () -> node(:div,
             login["inputs"]["username"],
             login["inputs"]["password"],
             login["inputs"]["login_btn"])),
-        attributes=Dict(:align=>"middle")
-    )
+        attributes=Dict(:align=>"middle"))  # node
 
 login["events"] = (w::Window) ->
     @async while true

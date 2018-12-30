@@ -3,13 +3,27 @@ struct Item
     id::Union{String,Nothing}
     name::Union{String,Nothing}
     url::Union{String,Nothing}
-    sales_price::Union{Dict{DateTime, Float64},Nothing}
+    sales_price::Union{Dict{DateTime,Float64},Nothing}
     shipping::Union{String,Nothing}
     imgs::Union{Vector{String},Nothing}
     sold_date::Union{String,Nothing}
     description::Union{String,Nothing}
     query_url::Union{String,Nothing}
 end
+
+struct _Item
+    market::Union{String,Missing}
+    id::Union{String,Missing}
+    name::Union{String,Missing}
+    url::Union{String,Missing}
+    sales_price::Union{Dict{DateTime,Float64},Missing}
+    shipping::Union{String,Missing}
+    imgs::Union{String,Missing}
+    sold_date::Union{String,Missing}
+    description::Union{String,Missing}
+    query_url::Union{String,Missing}
+end
+
 
 struct Query
     market::String
@@ -30,6 +44,14 @@ struct Search
     runs::Array{Any}
 end
 
+macro scrub(obj)
+    if typeof(obj) == Nothing
+        return missing
+    else
+        return obj
+    end
+end
+
 function app(page=login)
     #WebIO host
     #using Mux
@@ -46,13 +68,6 @@ function update_window(w::Window, page::Dict)
     return w
 end
 
-function get_prices(items::Vector{Item}, stats=Dict())
-    stats["prices"] = [
-        collect(item.sales_price)[end][2] for item in items if item.sales_price != nothing && collect(item.sales_price)[end][2] > 0 ]
-    stats["render"] = "valid item count: $(length(stats["prices"])) mean: \$$(round(mean(stats["prices"]))) std dev: \$$(round(std(stats["prices"])))"
-    return stats
-end
-
 function export_CSV(filename::String, _results::Array{Any,1})
     df = DataFrame(
         market = [item.market for item in vcat(_results...)],
@@ -64,6 +79,18 @@ function export_CSV(filename::String, _results::Array{Any,1})
         query_url = [typeof(item.query_url) != String ? missing : item.query_url for item in vcat(_results...)],)
 
     CSV.write(filename, df)
+end
+
+function save_search(w::Window, inputs::Dict, _search::Search)
+    if occursin(".bjs", inputs["load_file_btn"][])
+        filename = "./tmp/$(inputs["keywords"][])_$(string(now())[1:10]).bjs"
+        JLD2.@save filename _search
+        @js w alert("Search saved to .bjs file.")
+    elseif occursin(".bjk", inputs["load_file_btn"][])
+        @js w alert("Write a bulk search function!")
+    else  # invalid file error
+        @js w alert("Invalid file selected. It is a .bjs or .bjk file?")
+    end
 end
 
 function freeze_inputs(inputs::Dict, outputs=Dict())
@@ -134,7 +161,12 @@ function process_results(w::Window, inputs::Dict, _search=nothing) # frozen inpu
 
     @async if search["inputs"]["autosave_csv_chk"][] == true
         export_CSV(results_inputs["filename"][], _results)
-        @js w alert("Search results saved to CSV file.")
+        @js w alert("Search results saved to .csv file.")
+    end
+
+    @async if search["inputs"]["autosave_bjs_chk"][] == true
+        save_search(w, _search.name, _search)
+        @js w alert("Search object saved to .bjs file.")
     end
 
     @async if search["inputs"]["display_results_chk"][] == true

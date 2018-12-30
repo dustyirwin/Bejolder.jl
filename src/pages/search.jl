@@ -1,6 +1,6 @@
 search = Dict(
     "title" => "SEARCH ~ bejolder",
-    "size" => (850, 575),
+    "size" => (800, 575),
     "market_inputs" => (markets::Dict) -> Dict(
         market_name => Dict(
             "enabled" => toggle(false, uppercase(market_name)),
@@ -16,11 +16,12 @@ search = Dict(
             market_inputs[market_name]["max_pages"]) for market_name in keys(market_inputs)),
     "page_inputs" => Dict(
         "keywords" => textbox("Enter search keywords here"),
-        "search_btn" => button("SEARCH"),
-        "load_search_btn" => filepicker("choose a .bjs file..."),
-        "use_file_chk" => checkbox(false, label="use .bjs file"),
-        "autosave_csv_chk" => checkbox(false, label="autosave .csv"),
-        "display_results_chk" => checkbox(true, label="display results"))
+        "search_btn" => button("RUN SEARCH"),
+        "load_file_btn" => filepicker("load file..."),
+        "use_file_chk" => checkbox(false, label="use selected file"),
+        "autosave_csv_chk" => checkbox(false, label="autoexport .csv data"),
+        "display_results_chk" => checkbox(true, label="display results"),
+        "autosave_bjs_chk" => checkbox(false, label="autosave .bjs object(s)"))
     )
 
 search["market_inputs"] = search["market_inputs"](markets)
@@ -41,15 +42,16 @@ search["page_wdg"] = vbox(
     vskip(1.5em),
     vbox(
         hbox(
-            hskip(6em),
+            hskip(2em),
             search["inputs"]["search_btn"], hskip(1em),
-            search["inputs"]["load_search_btn"], hskip(1em)),
+            search["inputs"]["load_file_btn"], hskip(1em),
+            search["inputs"]["use_file_chk"],),
         hbox(
-            hskip(6em),
-            search["inputs"]["use_file_chk"],
+            hskip(2em),
+            search["inputs"]["autosave_bjs_chk"],
             search["inputs"]["autosave_csv_chk"],
-            search["inputs"]["display_results_chk"])
-    ))
+            search["inputs"]["display_results_chk"]))
+    )
 
 search["page"] = () -> node(:div, search["page_wdg"])
 
@@ -60,45 +62,31 @@ search["events"] = (w::Window, inputs=search["inputs"]) ->
 
             if inputs["use_file_chk"][] == true
                 try
-                    JLD2.@load inputs["load_search_btn"][] _search
-                    println("$(inputs["load_search_btn"][]) file loaded!")
+                    JLD2.@load inputs["load_file_btn"][] _search
+                    println(inputs["load_file_btn"][] * "file loaded!")
                     inputs["keywords"][] = _search.name
                     process_results(w, freeze_inputs(inputs), _search)
                     continue
 
-                catch err
+                catch err  # invalid file error msg
                     println(err)
-                    @js w alert("Please select a valid .bjs file.")
+                    @js w alert("Please select a valid .bjs or .bjk file.")
                     continue
                 end
 
-            # proceed using UI inputs
             elseif true in [inputs[market]["enabled"][] for market in keys(markets)]
 
                 if inputs["keywords"][] != ""
                     _search = make_search(inputs["keywords"][], Hour(24), freeze_inputs(inputs))
-
-                    if inputs["save_search_btn"][] > 0
-                        inputs["save_search_btn"][] = 0
-                        filename = "./tmp/" * inputs["keywords"][] * "_$(string(now())[1:10])" * ".bjs"
-                        JLD2.@save filename _search
-                        @js w alert("Search saved to .bjs file.")
-                        continue
-                    end
-                    if inputs["search_btn"][] > 0
-                        inputs["search_btn"][] = 0
-                        process_results(w, freeze_inputs(inputs), _search)
-                        continue
-                    end
+                    process_results(w, freeze_inputs(inputs), _search)
+                    continue
 
                 else # no search term error msg
-                    inputs["search_btn"][] = inputs["save_search_btn"][] = 0
                     @js w alert("Enter a search term.")
                     continue
                 end
 
             else # no market selected error msg
-                inputs["search_btn"][] = inputs["save_search_btn"][] = 0
                 @js w alert("Please select at least one market to query.")
                 continue
             end
