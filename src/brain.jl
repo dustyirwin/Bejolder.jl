@@ -11,20 +11,6 @@ struct Item
     query_url::Union{String,Nothing}
 end
 
-struct _Item
-    market::Union{String,Missing}
-    id::Union{String,Missing}
-    name::Union{String,Missing}
-    url::Union{String,Missing}
-    sales_price::Union{Dict{DateTime,Float64},Missing}
-    shipping::Union{String,Missing}
-    imgs::Union{String,Missing}
-    sold_date::Union{String,Missing}
-    description::Union{String,Missing}
-    query_url::Union{String,Missing}
-end
-
-
 struct Query
     market::String
     keywords::String
@@ -45,7 +31,7 @@ struct Search
 end
 
 macro scrub(obj)
-    if typeof(obj) == Nothing
+    if typeof(eval(obj)) == Nothing
         return missing
     else
         return obj
@@ -56,16 +42,14 @@ function app(page=login)
     #WebIO host
     #using Mux
     #webio_serve(page("/", req -> login["page"]))
-    w = Window()
-    update_window(w, page)
+    update_window(Window(), page)
 end
 
 function update_window(w::Window, page::Dict)
     size(w, page["size"][1], page["size"][2])
     title(w, page["title"])
-    body!(w, page["page"]())
+    body!(w, page["page"])
     page["events"](w)
-    return w
 end
 
 function export_CSV(filename::String, _results::Array{Any,1})

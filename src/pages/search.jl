@@ -53,7 +53,7 @@ search["page_wdg"] = vbox(
             search["inputs"]["display_results_chk"]))
     )
 
-search["page"] = () -> node(:div, search["page_wdg"])
+search["page"] = node(:div, search["page_wdg"])
 
 search["events"] = (w::Window, inputs=search["inputs"]) ->
     @async while true

@@ -3,6 +3,7 @@ function remove_search(w::Window, inputs::Dict)
 
     if confirm == true
         selected = merge(inputs["inactive"][], inputs["active"][])
+
         for k in keys(searches["inactive"])
             try if searches["inactive"][k] in selected
                 delete!(searches["inactive"], k) end catch
@@ -12,27 +13,27 @@ function remove_search(w::Window, inputs::Dict)
 
         JLD2.@save "./tmp/_searches.bjd" searches
         include("./src/pages/tracker.jl")
-        body!(t, tracker["page"]())
+        @async update_window(w, tracker)
     end
 end
 
-function add_search(w::Window, inputs::Dict)
-    JLD2.@load inputs["load_search_btn"][] _search; _search
-    searches["inactive"][_search.name] = inputs["load_search_btn"][]
+function load_search(w::Window, inputs::Dict)
+    JLD2.@load inputs["filename_btn"][] _search
+    searches["inactive"][_search.name] = inputs["filename_btn"][]
     JLD2.@save "./tmp/_searches.bjd" searches
     include("./src/pages/tracker.jl")
-    body!(t, tracker["page"]())
+    @async update_window(w, tracker)
 end
 
 function show_info(w::Window, inputs::Dict)
-    @async for filename in values(merge(searches["active"][], searches["inactive"][]))
-        t = Window()
+    @async for filename in merge(inputs["active"][], inputs["inactive"][])
+        s = Window()
         JLD2.@load filename _search
-        body!(t, render(_search))
+        body!(s, render(_search))
     end
 end
 
-function push_right(w::Window, inputs::Dict)
+function push_search(w::Window, inputs::Dict, direction::String)
     selected = inputs["inactive"][]
 
     for k in keys(searches["inactive"])
@@ -52,7 +53,8 @@ end
 
 function render(_search::Search)
     node(:div,
-        "keywords: " * _search.name,)
+        "keywords: " * _search.name,
+        render(_search.queries...))
 end
 
 searches =
@@ -70,16 +72,15 @@ tracker = Dict(
         "push_right_btn"=>button(">>"),
         "push_left_btn"=>button("<<"),
         "show_info_btn"=>button("Show Search Info(s)"),
-        "load_search_btn"=>filepicker("choose .bjs file..."),
-        "track_search_btn"=>button("^^ Track Search ^^"),
-        "save_search_btn"=>button("Save Search(s)"),
+        "filename_btn"=>filepicker("choose .bjs file..."),
+        "load_search_btn"=>button("^^ Load Search ^^"),
         "create_search_btn"=>button("Create Search"),
         "remove_search_btn"=>button("Remove Search(s)"),
         "active" => dropdown(searches["active"], label="Active Searches", multiple=true),
         "inactive" => dropdown(searches["inactive"], label="Inactive Searches", multiple=true))
     )
 
-tracker["page"] = () -> node(:div,
+tracker["page"] = node(:div,
     vbox(
         hbox(hskip(2em),
             tracker["inputs"]["inactive"], hskip(1em),
@@ -88,28 +89,26 @@ tracker["page"] = () -> node(:div,
                 tracker["inputs"]["push_left_btn"]), hskip(1em),
             tracker["inputs"]["active"]),
         hbox(hskip(1em),
-            tracker["inputs"]["track_search_btn"], hskip(1em),
-            tracker["inputs"]["load_search_btn"]),
+            tracker["inputs"]["load_search_btn"], hskip(1em),
+            tracker["inputs"]["filename_btn"]),
         hbox(hskip(1em),
-            tracker["inputs"]["save_search_btn"], hskip(1em),
             tracker["inputs"]["show_info_btn"], hskip(1em),
             tracker["inputs"]["remove_search_btn"], hskip(1em),
-            tracker["inputs"]["create_search_btn"])),
-    "Next search running in: "
-    ) # node
+            tracker["inputs"]["create_search_btn"]),
+        hbox(hskip(1em), "Next search running in: "))) # node
 
 tracker["events"] = (w::Window, inputs=tracker["inputs"]) ->
     @async while true  # UI events
-        if inputs["track_search_btn"][] > 0
-            inputs["track_search_btn"][] = 0
+        if inputs["load_search_btn"][] > 0
+            inputs["load_search_btn"][] = 0
 
-            if inputs["load_search_btn"][] == ""  # no file specified error
+            if inputs["filename_btn"][] == ""  # no file specified error
                 @js w alert("No file specified.")
                 continue
             else
                 try
-                    add_search(w, inputs)
-                    continue
+                    load_search(w, inputs)
+                    break
                 catch err  # invalid file error
                     println(err)
                     @js w alert("Invalid Search file specified. Is this a .bjs file?")
@@ -124,11 +123,11 @@ tracker["events"] = (w::Window, inputs=tracker["inputs"]) ->
         elseif inputs["remove_search_btn"][] > 0
             inputs["remove_search_btn"][] = 0
             remove_search(w, inputs)
-            continue
+            break
 
         elseif inputs["show_info_btn"][] > 0
             inputs["show_info_btn"][] = 0
-            show_search_info(w, inputs)
+            @async show_search_info(w, inputs)
             continue
 
         elseif inputs["push_right_btn"][] > 0

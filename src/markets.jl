@@ -20,7 +20,7 @@ markets["chewy"] = Dict(
         OrderedDict(now()=>parse(Float64, eachmatch(sel"div.ga-eec__price", item_html)[1][1].text[1:end])),  # sales_price
         eachmatch(sel".shipping", item_html)[1][1].text,  # shipping
         ["http:"*img[1].attributes["src"] for img in eachmatch(sel"div.image-holder", item_html)],  # imgs
-        missing,  # sold_date
+        nothing,  # sold_date
         "Description goes here...",
         query_url) for item_html in item_datas],
     "item_details" => (item, item_html) -> item.description = eachmatch(
@@ -85,9 +85,9 @@ markets["amazon"] = Dict(
             try eachmatch(sel"a", item_html)[3].attributes["href"] catch end,
             try Dict(now() => parse(Float64, eachmatch(sel"span.s-price", item_html)[1][1].text[2:end])) catch
                 try Dict(now() => parse(Float64, eachmatch(sel"span.a-offscreen", item_html)[1][1].text[2:end])) catch end end,
-            missing,
+            nothing,
             [try i.attributes["src"] catch end for i in eachmatch(sel"img.s-access-image", item_html)],
-            missing,
+            nothing,
             "description here",
             query_url,
             ) for item_html in item_datas if length(item_html.attributes) > 2],
@@ -116,7 +116,7 @@ markets["walmart"] = Dict(
         try OrderedDict(now()=>item["salePrice"]) catch end,
         try string(item["standardShipRate"]) catch end,
         [try item["mediumImage"] catch end],
-        missing,
+        nothing,
         try item["shortDescription"] catch
             try item["longDescription"] catch end end,
         query_url) for item in item_datas["items"]],

@@ -87,9 +87,9 @@ version = "0.5.1"
 
 [[DataFrames]]
 deps = ["CategoricalArrays", "CodecZlib", "Compat", "DataStreams", "Dates", "InteractiveUtils", "IteratorInterfaceExtensions", "LinearAlgebra", "Missings", "Printf", "Random", "Reexport", "SortingAlgorithms", "Statistics", "StatsBase", "TableTraits", "Tables", "Test", "TranscodingStreams", "Unicode", "WeakRefStrings"]
-git-tree-sha1 = "41ec35bcf49a860706924b9b3e322eed03164c83"
+git-tree-sha1 = "7e032a76f3455e38660ac456791951ac2d0b1e70"
 uuid = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
-version = "0.15.2"
+version = "0.16.0"
 
 [[DataStreams]]
 deps = ["Dates", "Missings", "Test", "WeakRefStrings"]
@@ -178,9 +178,9 @@ version = "0.9.0"
 
 [[InteractBase]]
 deps = ["Base64", "CSSUtil", "Colors", "DataStructures", "Dates", "JSExpr", "JSON", "Knockout", "Observables", "Random", "Test", "WebIO", "Widgets"]
-git-tree-sha1 = "494156a2e3fb192210bd8404da8de1d423d48bb1"
+git-tree-sha1 = "c831c36639b30177440f394e82ec7fd1a6b87bab"
 uuid = "d3863d7c-f0c8-5437-a7b4-3ae773c01009"
-version = "0.8.1"
+version = "0.8.2"
 
 [[InteractBulma]]
 deps = ["InteractBase", "Reexport", "Test"]
@@ -310,9 +310,9 @@ version = "0.2.3"
 
 [[OnlineStats]]
 deps = ["DataStructures", "Dates", "LearnBase", "LinearAlgebra", "LossFunctions", "OnlineStatsBase", "PenaltyFunctions", "Random", "RecipesBase", "Reexport", "Statistics", "StatsBase", "SweepOperator", "Test"]
-git-tree-sha1 = "70fe5cbb31d37c18f6312a2994c31b782be50607"
+git-tree-sha1 = "1fb6063994249604f7478e5d4fc75580fbf0fe31"
 uuid = "a15396b6-48d5-5d58-9928-6d29437db91e"
-version = "0.19.2"
+version = "0.20.1"
 
 [[OnlineStatsBase]]
 deps = ["LearnBase", "Test"]
@@ -362,9 +362,9 @@ version = "0.5.5"
 
 [[Plots]]
 deps = ["Base64", "Contour", "Dates", "FixedPointNumbers", "GR", "JSON", "LinearAlgebra", "Measures", "NaNMath", "Pkg", "PlotThemes", "PlotUtils", "Printf", "REPL", "Random", "RecipesBase", "Reexport", "Requires", "Showoff", "SparseArrays", "StaticArrays", "Statistics", "StatsBase", "Test", "UUIDs"]
-git-tree-sha1 = "2023977279e620622c413662c2fe60ca282e5630"
+git-tree-sha1 = "3a7d51ca722a7e4a9bc71d6688045289d52ed65b"
 uuid = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
-version = "0.22.1"
+version = "0.22.2"
 
 [[Printf]]
 deps = ["Unicode"]
@@ -500,9 +500,9 @@ version = "0.7.0"
 
 [[WebSockets]]
 deps = ["Base64", "Dates", "Distributed", "HTTP", "Logging", "MbedTLS", "Random", "Sockets", "Test"]
-git-tree-sha1 = "00f7fcc595907021cd7a60e4f0b58fb1c7b088ea"
+git-tree-sha1 = "86d48ad45a897278723b060134d26545e19d0ac2"
 uuid = "104b5d7c-a370-577a-8038-80a2059c5097"
-version = "1.1.1"
+version = "1.2.0"
 
 [[Widgets]]
 deps = ["Observables", "OrderedCollections", "Test"]
