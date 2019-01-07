@@ -4,7 +4,7 @@ function remove_search(w::Window, inputs::Dict)
     if confirm == true
         selected = merge(inputs["inactive"][], inputs["active"][])
 
-        for k in keys(searches["inactive"])
+        for k in keys(merge(searches["inactive"], searches["active"]))
             try if searches["inactive"][k] in selected
                 delete!(searches["inactive"], k) end catch
             try if searches["active"][k] in selected
@@ -33,23 +33,34 @@ function show_info(w::Window, inputs::Dict)
     end
 end
 
-function push_search(w::Window, inputs::Dict, direction::String)
+function push_right(w::Window, inputs::Dict)
     selected = inputs["inactive"][]
-
     for k in keys(searches["inactive"])
-        try if searches["inactive"][k] in selected
+        if searches["inactive"][k] in selected
             searches["active"][k] = searches["inactive"][k]
-            delete!(searches["inactive"], k) end
-        catch end
+            delete!(searches["inactive"], k)
+        end
     end
 
+    JLD2.@save "./tmp/_searches.bjd" searches
     include("./src/pages/tracker.jl")
-    body!(t, tracker["page"]())
+    @async update_window(t, tracker)
 end
 
-function push_left(w::Window, inputs=tracker["inputs"])
-    "mirror push right"
+function push_left(w::Window, inputs::Dict)
+    selected = inputs["active"][]
+    for k in keys(searches["active"])
+        if searches["active"][k] in selected
+            searches["inactive"][k] = searches["active"][k]
+            delete!(searches["active"], k)
+        end
+    end
+
+    JLD2.@save "./tmp/_searches.bjd" searches
+    include("./src/pages/tracker.jl")
+    @async update_window(t, tracker)
 end
+
 
 function render(_search::Search)
     node(:div,
@@ -108,13 +119,13 @@ tracker["events"] = (w::Window, inputs=tracker["inputs"]) ->
             else
                 try
                     load_search(w, inputs)
-                    break
+                    break # changes UI
                 catch err  # invalid file error
                     println(err)
                     @js w alert("Invalid Search file specified. Is this a .bjs file?")
                     continue
-                end
-            end
+            end end
+
         elseif inputs["create_search_btn"][] > 0
             inputs["create_search_btn"][] = 0
             @async app(search)
@@ -123,7 +134,7 @@ tracker["events"] = (w::Window, inputs=tracker["inputs"]) ->
         elseif inputs["remove_search_btn"][] > 0
             inputs["remove_search_btn"][] = 0
             remove_search(w, inputs)
-            break
+            break # changes UI
 
         elseif inputs["show_info_btn"][] > 0
             inputs["show_info_btn"][] = 0
@@ -131,14 +142,14 @@ tracker["events"] = (w::Window, inputs=tracker["inputs"]) ->
             continue
 
         elseif inputs["push_right_btn"][] > 0
-            inputs["inputs"]["push_right_btn"][] = 0
+            inputs["push_right_btn"][] = 0
             push_right(w, inputs)
-            continue
+            break # changes UI
 
         elseif inputs["push_left_btn"][] > 0
-            inputs["inputs"]["push_left_btn"][] = 0
+            inputs["push_left_btn"][] = 0
             push_left(w, inputs)
-            continue
+            break # changes UI
 
         else
             sleep(0.1)
@@ -156,11 +167,9 @@ function track_searches()
                     _search, _results = process_search(_search)
                     JLD2.@save filename _search
                     continue
-                end
-            end
+                end end
 
         else
             sleep(1)
-        end
-    end
+    end end
 end
