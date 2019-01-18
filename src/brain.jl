@@ -1,14 +1,14 @@
 struct Item
-    market::Union{String,Missing}
-    id::Union{String,Nothing}
-    name::Union{String,Nothing}
-    url::Union{String,Nothing}
-    sales_price::Union{Dict{DateTime,Float64},Nothing}
-    shipping::Union{String,Nothing}
-    imgs::Union{Vector{String},Nothing}
-    sold_date::Union{String,Nothing}
-    description::Union{String,Nothing}
-    query_url::Union{String,Nothing}
+    market::Union{String, Missing}
+    id::Union{String, Missing}
+    name::Union{String, Missing}
+    url::Union{String, Missing}
+    sales_price::Union{Dict{DateTime, Any}, Missing}
+    shipping::Union{String, Missing}
+    imgs::Union{Vector{String}, Missing}
+    sold_date::Union{String, Missing}
+    description::Union{String, Missing}
+    query_url::Union{String, Missing}
 end
 
 struct Query
@@ -30,19 +30,12 @@ struct Search
     runs::Array{Any}
 end
 
-macro scrub(obj)
-    if typeof(eval(obj)) == Nothing
-        return missing
-    else
-        return obj
-    end
-end
-
 function app(page=login)
     #WebIO host
     #using Mux
     #webio_serve(page("/", req -> login["page"]))
-    update_window(Window(), page)
+    w = Window()
+    return update_window(w, page)
 end
 
 function update_window(w::Window, page::Dict)

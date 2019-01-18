@@ -14,13 +14,19 @@ markets["chewy"] = Dict(
     "item_datas" => (response) -> eachmatch(sel".product-holder", parsehtml(String(response.body)).root),
     "items" => (item_datas, query_url) -> [Item(
         "chewy",  # market
-        eachmatch(sel".ga-eec__id", item_html)[1][1].text,  # id
-        eachmatch(sel".ga-eec__name", item_html)[1][1].text,  # name
-        "https://chewy.com$(eachmatch(sel".product", item_html)[1].attributes["href"])",  # url
-        OrderedDict(now()=>parse(Float64, eachmatch(sel"div.ga-eec__price", item_html)[1][1].text[1:end])),  # sales_price
-        eachmatch(sel".shipping", item_html)[1][1].text,  # shipping
-        ["http:"*img[1].attributes["src"] for img in eachmatch(sel"div.image-holder", item_html)],  # imgs
-        nothing,  # sold_date
+        try eachmatch(sel".ga-eec__id", item_html)[1][1].text catch
+            missing end,  # id
+        try eachmatch(sel".ga-eec__name", item_html)[1][1].text catch
+            missing end,  # name
+        try "https://chewy.com$(eachmatch(sel".product", item_html)[1].attributes["href"])" catch
+            missing end,  # url
+        try OrderedDict(now()=>parse(Float64, eachmatch(sel"div.ga-eec__price", item_html)[1][1].text[1:end])) catch
+            missing end,  # sales_price
+        try eachmatch(sel".shipping", item_html)[1][1].text catch
+            missing end,  # shipping
+        try ["http:"*img[1].attributes["src"] for img in eachmatch(sel"div.image-holder", item_html)] catch
+            missing end,  # imgs
+        missing,  # sold_date
         "Description goes here...",
         query_url) for item_html in item_datas],
     "item_details" => (item, item_html) -> item.description = eachmatch(
@@ -49,13 +55,19 @@ markets["ebay"] = Dict(
             "ebay",  # market
             match(r"/\d+/?", eachmatch(sel"a.s-item__link", item_html)[1].attributes["href"]).match[2:end],  # id
             try eachmatch(sel"h3.s-item__title", item_html)[1][2].text catch
-                try eachmatch(sel"h3.s-item__title", item_html)[2][2].text catch end end,  # name
-            try eachmatch(sel"a", item_html)[1].attributes["href"] catch end,  # url
+                try eachmatch(sel"h3.s-item__title", item_html)[2][2].text catch
+                    missing end end,  # name
+            try eachmatch(sel"a", item_html)[1].attributes["href"] catch
+                missing end,  # url
             try OrderedDict(now()=>parse(Float64, eachmatch(sel"span.s-item__price", item_html)[1][1].text[2:end])) catch
-                try OrderedDict(now()=>parse(Float64, eachmatch(sel"span.POSITIVE", item_html)[1][1].text[2:end])) catch end end, # sales_price
-            try eachmatch(sel"span.s-item__shipping", item_html)[1][1][1].text catch end,  # shipping
-            [img.attributes["src"] for img in eachmatch(sel"img", item_html)],  # imgs
-            try eachmatch(sel"span.s-item__ended-date s-item__endedDate", item_html)[1][1].text catch end,  # sold_date
+                try OrderedDict(now()=>parse(Float64, eachmatch(sel"span.POSITIVE", item_html)[1][1].text[2:end])) catch
+                    missing end end, # sales_price
+            try eachmatch(sel"span.s-item__shipping", item_html)[1][1][1].text catch
+                missing end,  # shipping
+            try [img.attributes["src"] for img in eachmatch(sel"img", item_html)] catch
+                missing end,  # imgs
+            try eachmatch(sel"span.s-item__ended-date s-item__endedDate", item_html)[1][1].text catch
+            missing end,  # sold_date
             "Description goes here...",
             query_url,
             ) for item_html in item_datas],
@@ -79,15 +91,20 @@ markets["amazon"] = Dict(
         [i for i in eachmatch(sel"li.s-result-item", parsehtml(String(response.body)).root) if length(i.attributes) > 2],
     "items" => (item_datas, query_url) -> [Item(
             "amazon",
-            try item_html.attributes["data-asin"] catch end,
+            try item_html.attributes["data-asin"] catch
+            missing end,
             try eachmatch(sel"h2", item_html)[1].attributes["data-attribute"] catch
-                try eachmatch(sel"h2", item_html)[1][1][1].text catch end end,
-            try eachmatch(sel"a", item_html)[3].attributes["href"] catch end,
+                try eachmatch(sel"h2", item_html)[1][1][1].text catch
+                    missing end end,
+            try eachmatch(sel"a", item_html)[3].attributes["href"] catch
+                missing end,
             try Dict(now() => parse(Float64, eachmatch(sel"span.s-price", item_html)[1][1].text[2:end])) catch
-                try Dict(now() => parse(Float64, eachmatch(sel"span.a-offscreen", item_html)[1][1].text[2:end])) catch end end,
-            nothing,
-            [try i.attributes["src"] catch end for i in eachmatch(sel"img.s-access-image", item_html)],
-            nothing,
+                try Dict(now() => parse(Float64, eachmatch(sel"span.a-offscreen", item_html)[1][1].text[2:end])) catch
+                    missing end end,
+            missing,
+            try [i.attributes["src"] for i in eachmatch(sel"img.s-access-image", item_html)] catch
+                missing end,
+            missing,
             "description here",
             query_url,
             ) for item_html in item_datas if length(item_html.attributes) > 2],
@@ -110,15 +127,22 @@ markets["walmart"] = Dict(
     "item_datas" => (response) -> JSON.parse(String(response.body)),
     "items" => (item_datas, query_url) -> [Item(
         "walmart",
-        try string(item["itemId"]) catch end,
-        try item["name"] catch end,
-        try item["productUrl"] catch end,
-        try OrderedDict(now()=>item["salePrice"]) catch end,
-        try string(item["standardShipRate"]) catch end,
-        [try item["mediumImage"] catch end],
-        nothing,
+        try string(item["itemId"]) catch
+            missing end,
+        try item["name"] catch
+            missing end,
+        try item["productUrl"] catch
+            missing end,
+        try OrderedDict(now()=>item["salePrice"]) catch
+            missing end,
+        try string(item["standardShipRate"]) catch
+            missing end,
+        try [item["mediumImage"]] catch
+            missing end,
+        missing,
         try item["shortDescription"] catch
-            try item["longDescription"] catch end end,
+            try item["longDescription"] catch
+                missing end end,
         query_url) for item in item_datas["items"]],
     "item_details" => (item_html) -> OrderedDict(
             "description" => eachmatch(Selector(""), item_html.root)),

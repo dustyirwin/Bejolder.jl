@@ -1,3 +1,25 @@
+function track_searches(w::Window, inputs=tracker["inputs"])
+    @async while true
+        if inputs["track_searches"][] == true
+
+            for filename in values(searches["active"])
+                JLD2.@load filename _search; _search
+
+                if (now() - _search.runs[end]) > _search.interval
+                    _search, _results = process_search(_search)
+                    JLD2.@save filename _search
+                    println(_search.name * " updated.")
+                else
+                    println(_search.name, " skipped. Last ran: ", _search.runs[end])
+                end
+            end
+
+        else
+            sleep(1)
+        end
+    end
+end
+
 function remove_search(w::Window, inputs::Dict)
     confirm = @js w confirm("Remove the selected Search(s)?")
 
@@ -23,14 +45,6 @@ function load_search(w::Window, inputs::Dict)
     JLD2.@save "./tmp/_searches.bjd" searches
     include("./src/pages/tracker.jl")
     @async update_window(w, tracker)
-end
-
-function show_info(w::Window, inputs::Dict)
-    @async for filename in merge(inputs["active"][], inputs["inactive"][])
-        s = Window()
-        JLD2.@load filename _search
-        body!(s, render(_search))
-    end
 end
 
 function push_right(w::Window, inputs::Dict)
@@ -61,6 +75,13 @@ function push_left(w::Window, inputs::Dict)
     @async update_window(t, tracker)
 end
 
+function show_search_info()
+    @async for filename in merge(searches["active"][], searches["inactive"][])
+        s = Window()
+        JLD2.@load filename _search
+        body!(s, render(_search))
+    end
+end
 
 function render(_search::Search)
     node(:div,
@@ -78,7 +99,7 @@ searches =
 
 tracker = Dict(
     "title" => "TRACKER ~ bejolder",
-    "size" => (790, 400),
+    "size" => (790, 410),
     "inputs" => Dict(
         "push_right_btn"=>button(">>"),
         "push_left_btn"=>button("<<"),
@@ -88,7 +109,8 @@ tracker = Dict(
         "create_search_btn"=>button("Create Search"),
         "remove_search_btn"=>button("Remove Search(s)"),
         "active" => dropdown(searches["active"], label="Active Searches", multiple=true),
-        "inactive" => dropdown(searches["inactive"], label="Inactive Searches", multiple=true))
+        "inactive" => dropdown(searches["inactive"], label="Inactive Searches", multiple=true),
+        "track_searches" => toggle("TRACK SEARCHES"))
     )
 
 tracker["page"] = node(:div,
@@ -105,10 +127,11 @@ tracker["page"] = node(:div,
         hbox(hskip(1em),
             tracker["inputs"]["show_info_btn"], hskip(1em),
             tracker["inputs"]["remove_search_btn"], hskip(1em),
-            tracker["inputs"]["create_search_btn"]),
-        hbox(hskip(1em), "Next search running in: "))) # node
+            tracker["inputs"]["create_search_btn"])),
+    hbox(
+        hskip(1em), tracker["inputs"]["track_searches"])) # node
 
-tracker["events"] = (w::Window, inputs=tracker["inputs"]) ->
+tracker["events"] = function(w::Window, inputs=tracker["inputs"])
     @async while true  # UI events
         if inputs["load_search_btn"][] > 0
             inputs["load_search_btn"][] = 0
@@ -151,25 +174,10 @@ tracker["events"] = (w::Window, inputs=tracker["inputs"]) ->
             push_left(w, inputs)
             break # changes UI
 
+        elseif inputs["track_searches"][]
+
         else
             sleep(0.1)
         end
     end
-
-function track_searches()
-    @async while true
-        if length(tracker["inputs"]["active"][]) > 0
-
-            for filename in tracker["inputs"]["active"][]
-                JLD2.@load filename _search; _search
-
-                if now() - _search.runs[end] > _search.interval
-                    _search, _results = process_search(_search)
-                    JLD2.@save filename _search
-                    continue
-                end end
-
-        else
-            sleep(1)
-    end end
 end

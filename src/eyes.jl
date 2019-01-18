@@ -7,7 +7,7 @@ proxies = Dict(
     1=>"https://162.210.211.225:57364",
     2=>"https://45.79.64.225:3128",)  # from https://free-proxy-list.net/
 
-function stare(market::Dict, item, headers=headers)
+function stare(market::Dict, item::Item, headers=headers)
     response = HTTP.get(item["url"], headers=headers)
     page_html = parsehtml(String(response.body))
     item_details = market["item_details"](page_html)
@@ -16,7 +16,7 @@ function stare(market::Dict, item, headers=headers)
     return item
 end # ::Item
 
-function scan(market::Dict, keywords, category="", filters=[], max_pages=1, headers=headers)
+function scan(market::Dict, keywords::String, category="", filters=[], max_pages=1, headers=headers)
     items = []
     headers = headers[rand(1:length(headers))]
 
@@ -44,7 +44,8 @@ end # ::Vector{Item}
 
 function get_prices(items::Vector{Item}, stats=Dict())
     stats["prices"] = [
-        collect(item.sales_price)[end][2] for item in items if item.sales_price != nothing && collect(item.sales_price)[end][2] > 0 ]
+        collect(item.sales_price)[end][2] for item in items
+            if typeof(item.sales_price) != Missing && collect(item.sales_price)[end][2] > 0 ]
     stats["render"] = "valid item count: $(length(stats["prices"])) mean: \$$(round(mean(stats["prices"]))) std dev: \$$(round(std(stats["prices"])))"
     return stats
 end # ::Dict
