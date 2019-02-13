@@ -174,22 +174,24 @@ tracker["events"] = function(w::Window, inputs=tracker["inputs"])
             break # changes UI
 
         elseif inputs["track_searches"][] == true
-            while inputs["track_searches"][] == true
-                i = 0  # search counter
+            i = 0  # search counter
 
-                @sync @async for filename in values(searches["active"])
+            @sync @async for filename in values(searches["active"])
+                try
                     JLD2.@load filename _search; search
 
                     if now() - _search.runs[end] > _search.interval
                         _search, _results = process_search(_search)
                         JLD2.@save filename _search
-                        global i += 1
+                        i += 1
                     end
+                catch err
+                    println(err)
                 end
+            end
 
-                if i < 1  # sleep if any searches ran / blocks tracker inputs?
-                    println("No searches ready. Sleeping..."); sleep(5)
-                end
+            if i < 1  # sleep if any searches ran / blocks tracker inputs?
+                println("No searches ready. Sleeping..."); sleep(5)
             end
 
         else
