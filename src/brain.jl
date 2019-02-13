@@ -25,7 +25,7 @@ end
 
 struct Search
     name::String
-    interval::Hour
+    interval::Minute
     queries::Vector{Query}
     runs::Array{Any}
 end
@@ -70,7 +70,7 @@ function save_search(w::Window, inputs::Dict, _search::Search)
     end
 end
 
-function freeze_inputs(inputs::Dict, outputs=Dict())
+function freeze(inputs::Dict, outputs=Dict())
     outputs["keywords"] = inputs["keywords"][]
 
     for market in keys(markets)
@@ -92,7 +92,7 @@ function make_query(name::String, keywords::String, category::Union{Int64,String
     return Query(name, keywords, category, join(filters), max_pages, query_url, univariate_stats, m, plot_obs)
 end
 
-function make_search(search_name::String, interval::Hour, inputs::Dict, queries=[]) # frozen or json inputs
+function make_search(search_name::String, interval::Minute, inputs::Dict, queries=[]) # frozen or json inputs
 
     for market_name in [keys(markets)...]
         if inputs[market_name]["enabled"] == true
@@ -146,7 +146,7 @@ function process_results(w::Window, inputs::Dict, _search=nothing) # frozen inpu
         @js w alert("Search object saved to .bjs file.")
     end
 
-    @async if search["inputs"]["display_results_chk"][] == true
+    @async begin
         r = Window()
         title(r, results["title"])
         size(r, results["size"][1], results["size"][2])

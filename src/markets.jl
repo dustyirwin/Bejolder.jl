@@ -67,8 +67,8 @@ markets["ebay"] = Dict(
             try [img.attributes["src"] for img in eachmatch(sel"img", item_html)] catch
                 missing end,  # imgs
             try eachmatch(sel"span.s-item__ended-date s-item__endedDate", item_html)[1][1].text catch
-            missing end,  # sold_date
-            "Description goes here...",
+                missing end,  # sold_date
+            missing,
             query_url,
             ) for item_html in item_datas],
     "item_details" => (item, item_html) -> item.description = "Detailed Description here")
@@ -92,7 +92,7 @@ markets["amazon"] = Dict(
     "items" => (item_datas, query_url) -> [Item(
             "amazon",
             try item_html.attributes["data-asin"] catch
-            missing end,
+                missing end,
             try eachmatch(sel"h2", item_html)[1].attributes["data-attribute"] catch
                 try eachmatch(sel"h2", item_html)[1][1][1].text catch
                     missing end end,

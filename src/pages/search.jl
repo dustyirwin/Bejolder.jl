@@ -1,6 +1,6 @@
 search = Dict(
     "title" => "SEARCH ~ bejolder",
-    "size" => (800, 575),
+    "size" => (800, 525),
     "market_inputs" => (markets::Dict) -> Dict(
         market_name => Dict(
             "enabled" => toggle(false, uppercase(market_name)),
@@ -18,10 +18,7 @@ search = Dict(
         "keywords" => textbox("Enter search keywords here"),
         "search_btn" => button("RUN SEARCH"),
         "load_file_btn" => filepicker("load file..."),
-        "use_file_chk" => checkbox(false, label="use selected file"),
-        "autosave_csv_chk" => checkbox(false, label="autoexport .csv data"),
-        "display_results_chk" => checkbox(true, label="display results"),
-        "autosave_bjs_chk" => checkbox(false, label="autosave .bjs object(s)"))
+        "use_file_chk" => checkbox(false, label="use selected file"))
     )
 
 search["market_inputs"] = search["market_inputs"](markets)
@@ -45,12 +42,7 @@ search["page_wdg"] = vbox(
             hskip(2em),
             search["inputs"]["search_btn"], hskip(1em),
             search["inputs"]["load_file_btn"], hskip(1em),
-            search["inputs"]["use_file_chk"],),
-        hbox(
-            hskip(2em),
-            search["inputs"]["autosave_bjs_chk"],
-            search["inputs"]["autosave_csv_chk"],
-            search["inputs"]["display_results_chk"]))
+            vbox(vskip(0.35em), search["inputs"]["use_file_chk"])))
     )
 
 search["page"] = node(:div, search["page_wdg"])
@@ -65,20 +57,20 @@ search["events"] = (w::Window, inputs=search["inputs"]) ->
                     JLD2.@load inputs["load_file_btn"][] _search
                     println(inputs["load_file_btn"][] * "file loaded!")
                     inputs["keywords"][] = _search.name
-                    process_results(w, freeze_inputs(inputs), _search)
+                    process_results(w, freeze(inputs), _search)
                     continue
 
                 catch err  # invalid file error msg
                     println(err)
-                    @js w alert("Please select a valid .bjs or .bjk file.")
+                    @js w alert("Invalid .bjs file.")
                     continue
                 end
 
             elseif true in [inputs[market]["enabled"][] for market in keys(markets)]
 
                 if inputs["keywords"][] != ""
-                    _search = make_search(inputs["keywords"][], Hour(24), freeze_inputs(inputs))
-                    process_results(w, freeze_inputs(inputs), _search)
+                    _search = make_search(inputs["keywords"][], Minute(1), freeze(inputs))
+                    process_results(w, freeze(inputs), _search)
                     continue
 
                 else # no search term error msg
@@ -87,7 +79,7 @@ search["events"] = (w::Window, inputs=search["inputs"]) ->
                 end
 
             else # no market selected error msg
-                @js w alert("Please select at least one market to query.")
+                @js w alert("Select at least one market to query.")
                 continue
             end
 
