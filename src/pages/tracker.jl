@@ -14,6 +14,16 @@ function track_searches(w::Window, inputs=tracker["inputs"])
                 end
             end
 
+            @async if search["inputs"]["autosave_csv_chk"][] == true
+                export_CSV(results_inputs["filename"][], _results)
+                @js w alert("Search results saved to .csv file.")
+            end
+
+            @async if search["inputs"]["autosave_bjs_chk"][] == true
+                save_search(w, _search.name, _search)
+                @js w alert("Search object saved to .bjs file.")
+            end
+
         else
             sleep(1)
         end
@@ -75,20 +85,6 @@ function push_left(w::Window, inputs::Dict)
     @async update_window(t, tracker)
 end
 
-function show_search_info()
-    @async for filename in merge(searches["active"][], searches["inactive"][])
-        s = Window()
-        JLD2.@load filename _search
-        body!(s, render(_search))
-    end
-end
-
-function render(_search::Search)
-    node(:div,
-        "keywords: " * _search.name,
-        render(_search.queries...))
-end
-
 searches =
     try JLD2.@load "./tmp/_searches.bjd" searches; searches
     catch
@@ -110,7 +106,10 @@ tracker = Dict(
         "remove_search_btn"=>button("Remove Search(s)"),
         "active" => dropdown(searches["active"], label="Active Searches", multiple=true),
         "inactive" => dropdown(searches["inactive"], label="Inactive Searches", multiple=true),
-        "track_searches" => toggle("TRACK SEARCHES"))
+        "track_searches" => toggle("TRACK SEARCHES"),
+        "autosave_csv_chk" => checkbox(false, label="autosave .csv data"),
+        "display_results_chk" => checkbox(false, label="display results"),
+        )
     )
 
 tracker["page"] = node(:div,
@@ -174,7 +173,24 @@ tracker["events"] = function(w::Window, inputs=tracker["inputs"])
             push_left(w, inputs)
             break # changes UI
 
-        elseif inputs["track_searches"][]
+        elseif inputs["track_searches"][] == true
+            while inputs["track_searches"][] == true
+                i = 0  # search counter
+
+                @sync @async for filename in values(searches["active"])
+                    JLD2.@load filename _search; search
+
+                    if now() - _search.runs[end] > _search.interval
+                        _search, _results = process_search(_search)
+                        JLD2.@save filename _search
+                        global i += 1
+                    end
+                end
+
+                if i < 1  # sleep if any searches ran / blocks tracker inputs?
+                    println("No searches ready. Sleeping..."); sleep(5)
+                end
+            end
 
         else
             sleep(0.1)
