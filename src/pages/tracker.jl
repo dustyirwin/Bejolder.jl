@@ -95,11 +95,11 @@ searches =
 
 tracker = Dict(
     "title" => "TRACKER ~ bejolder",
-    "size" => (790, 410),
+    "size" => (790, 400),
     "inputs" => Dict(
         "push_right_btn"=>button(">>"),
         "push_left_btn"=>button("<<"),
-        "show_info_btn"=>button("Show Search Info(s)"),
+        "show_info_btn"=>button("Show Info(s)"),
         "filename_btn"=>filepicker("choose .bjs file..."),
         "load_search_btn"=>button("^^ Load Search ^^"),
         "create_search_btn"=>button("Create Search"),
@@ -107,8 +107,7 @@ tracker = Dict(
         "active" => dropdown(searches["active"], label="Active Searches", multiple=true),
         "inactive" => dropdown(searches["inactive"], label="Inactive Searches", multiple=true),
         "track_searches" => toggle("TRACK SEARCHES"),
-        "autosave_csv_chk" => checkbox(false, label="autosave .csv data"),
-        "display_results_chk" => checkbox(false, label="display results"),
+        "keywords" => textbox(""),  # not on UI
         )
     )
 
@@ -120,6 +119,7 @@ tracker["page"] = node(:div,
                 tracker["inputs"]["push_right_btn"],
                 tracker["inputs"]["push_left_btn"]), hskip(1em),
             tracker["inputs"]["active"]),
+        vskip(1em),
         hbox(hskip(1em),
             tracker["inputs"]["load_search_btn"], hskip(1em),
             tracker["inputs"]["filename_btn"]),
@@ -160,8 +160,12 @@ tracker["events"] = function(w::Window, inputs=tracker["inputs"])
 
         elseif inputs["show_info_btn"][] > 0
             inputs["show_info_btn"][] = 0
-            @async show_search_info(w, inputs)
-            continue
+
+            @async for filename in merge(tracker["inputs"]["active"][], tracker["inputs"]["inactive"][])
+                JLD2.@load filename _search
+                process_results(t, freeze(search["inputs"]), _search)
+                continue
+            end
 
         elseif inputs["push_right_btn"][] > 0
             inputs["push_right_btn"][] = 0
@@ -185,7 +189,7 @@ tracker["events"] = function(w::Window, inputs=tracker["inputs"])
                         JLD2.@save filename _search
                         i += 1
                     end
-                catch err
+                catch err  # todo: log errors to file
                     println(err)
                 end
             end
@@ -195,7 +199,7 @@ tracker["events"] = function(w::Window, inputs=tracker["inputs"])
             end
 
         else
-            sleep(0.1)
+            sleep(0.25)
         end
     end
 end

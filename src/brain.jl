@@ -11,7 +11,7 @@ struct Item
     query_url::Union{String, Missing}
 end
 
-struct Query
+mutable struct Query
     market::String
     keywords::String
     category::Union{String,Int64}
@@ -23,7 +23,7 @@ struct Query
     plot_obs::Series
 end
 
-struct Search
+mutable struct Search
     name::String
     interval::Minute
     queries::Vector{Query}
@@ -86,7 +86,7 @@ end
 
 function make_query(name::String, keywords::String, category::Union{Int64,String}, filters::Union{String,Array{String,1}}, max_pages::Int64)
     query_url = markets[name]["query_url"](replace(keywords, " "=>"+"), category, filters)
-    univariate_stats = Series(Mean(),Variance(),Extrema(),Quantile(),Moments(),Sum())
+    univariate_stats = Series(Mean(), Variance(), Extrema(), Quantile(), Moments(), Sum())
     m = StatLearn(3, .5 * L2DistLoss(), NoPenalty(), SGD(), rate = LearningRate(.6))
     plot_obs = Series(Partition(Mean()), Partition(Extrema()))
     return Query(name, keywords, category, join(filters), max_pages, query_url, univariate_stats, m, plot_obs)
@@ -130,20 +130,10 @@ function process_results(w::Window, inputs::Dict, _search=nothing) # frozen inpu
     results_inputs = results["inputs"](inputs["keywords"])
 
     if _search == nothing
-        _search = make_search(inputs["keywords"], Hour(1), inputs)
+        _search = make_search(inputs["keywords"], Minute(results["inputs"]("")["search_interval"][]), inputs)
         _search, _results = process_search(_search)
     else
         _search, _results = process_search(_search)
-    end
-
-    @async if search["inputs"]["autosave_csv_chk"][] == true
-        export_CSV(results_inputs["filename"][], _results)
-        @js w alert("Search results saved to .csv file.")
-    end
-
-    @async if search["inputs"]["autosave_bjs_chk"][] == true
-        save_search(w, _search.name, _search)
-        @js w alert("Search object saved to .bjs file.")
     end
 
     @async begin

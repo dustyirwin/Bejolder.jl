@@ -69,7 +69,7 @@ search["events"] = (w::Window, inputs=search["inputs"]) ->
             elseif true in [inputs[market]["enabled"][] for market in keys(markets)]
 
                 if inputs["keywords"][] != ""
-                    _search = make_search(inputs["keywords"][], Minute(1), freeze(inputs))
+                    _search = make_search(inputs["keywords"][], Minute(results["inputs"]("")["search_interval"][]), freeze(inputs))
                     process_results(w, freeze(inputs), _search)
                     continue
 

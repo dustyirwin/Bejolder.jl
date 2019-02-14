@@ -32,12 +32,14 @@ results = Dict(
         "export_CSV" => button("Export Data to CSV"),
         "filename_CSV" => textbox(value="$(replace(keywords, " "=>"_"))_$(string(now())[1:10]).csv"),
         "save_search_btn" => button("Save Search"),
-        "filename_BJS" => textbox(value="$(replace(keywords, " "=>"_"))_$(string(now())[1:10]).bjs")),
+        "filename_BJS" => textbox(value="$(replace(keywords, " "=>"_"))_$(string(now())[1:10]).bjs"),
+        "search_interval" => spinbox(value=60)),
     "page" => (inputs::Dict, _results::Vector{Any}, _search::Search) ->
         node(:div,
             hbox(
                 hskip(1em), inputs["filename_CSV"], hskip(0.5em), inputs["export_CSV"],
-                hskip(1em), inputs["filename_BJS"], hskip(0.5em), inputs["save_search_btn"],),
+                hskip(1em), inputs["filename_BJS"], hskip(0.5em), "interval:", inputs["search_interval"],
+                hskip(1em), inputs["save_search_btn"],),
             render(_search.queries),
             render(_results)),
     "events" => (r::Window, inputs::Dict, _results::Vector{Any}, _search::Search) ->
@@ -49,6 +51,7 @@ results = Dict(
                 continue
             elseif inputs["save_search_btn"][] > 0
                 inputs["save_search_btn"][] = 0
+                _search.interval = Minute(inputs["search_interval"][])
                 JLD2.@save "./tmp/" * inputs["filename_BJS"][] _search
                 @js r alert("Search saved to file.")
                 continue

@@ -294,9 +294,9 @@ version = "0.5.11"
 
 [[Mux]]
 deps = ["AssetRegistry", "Base64", "HTTP", "Hiccup", "Lazy", "Pkg", "Sockets", "Test", "WebSockets"]
-git-tree-sha1 = "487feb060cdd5cc152ef4f75b3cb565c0dc4300a"
+git-tree-sha1 = "cd8de2fc09f8fcc2ee300db39fa0706794b1b2e7"
 uuid = "a975b10e-0019-58db-a62f-e48ff68538c9"
-version = "0.5.3"
+version = "0.6.0"
 
 [[NaNMath]]
 deps = ["Compat"]
