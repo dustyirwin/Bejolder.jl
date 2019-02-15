@@ -35,7 +35,7 @@ function app(page=login)
     #using Mux
     #webio_serve(page("/", req -> login["page"]))
     w = Window()
-    return update_window(w, page)
+    update_window(w, page)
 end
 
 function update_window(w::Window, page::Dict)

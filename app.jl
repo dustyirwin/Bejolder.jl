@@ -6,5 +6,5 @@ pkg"up"
 pkg"precompile"
 
 include("./src/Bejolder.jl")
-
-app()
+w = Window()
+update_window(w, tracker)
