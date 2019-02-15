@@ -1,6 +1,9 @@
 using Pkg
+
 Pkg.activate(".")
-#Pkg.instantiate()
+pkg"instantiate"
+pkg"up"
+pkg"precompile"
 
 include("./src/Bejolder.jl")
 
