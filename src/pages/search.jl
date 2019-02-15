@@ -1,6 +1,6 @@
 search = Dict(
     "title" => "SEARCH ~ bejolder",
-    "size" => (800, 525),
+    "size" => (810, 525),
     "market_inputs" => (markets::Dict) -> Dict(
         market_name => Dict(
             "enabled" => toggle(false, uppercase(market_name)),

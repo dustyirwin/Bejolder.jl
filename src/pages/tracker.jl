@@ -95,11 +95,11 @@ searches =
 
 tracker = Dict(
     "title" => "TRACKER ~ bejolder",
-    "size" => (790, 400),
+    "size" => (700, 375),
     "inputs" => Dict(
         "push_right_btn"=>button(">>"),
         "push_left_btn"=>button("<<"),
-        "show_info_btn"=>button("Show Info(s)"),
+        "run_search_btn"=>button("Run Search(es)"),
         "filename_btn"=>filepicker("choose .bjs file..."),
         "load_search_btn"=>button("^^ Load Search ^^"),
         "create_search_btn"=>button("Create Search"),
@@ -124,11 +124,10 @@ tracker["page"] = node(:div,
             tracker["inputs"]["load_search_btn"], hskip(1em),
             tracker["inputs"]["filename_btn"]),
         hbox(hskip(1em),
-            tracker["inputs"]["show_info_btn"], hskip(1em),
+            tracker["inputs"]["run_search_btn"], hskip(1em),
             tracker["inputs"]["remove_search_btn"], hskip(1em),
-            tracker["inputs"]["create_search_btn"])),
-    hbox(
-        hskip(1em), tracker["inputs"]["track_searches"])) # node
+            tracker["inputs"]["create_search_btn"], hskip(1em),
+            tracker["inputs"]["track_searches"]))) # node
 
 tracker["events"] = function(w::Window, inputs=tracker["inputs"])
     @async while true  # UI events
@@ -158,7 +157,7 @@ tracker["events"] = function(w::Window, inputs=tracker["inputs"])
             remove_search(w, inputs)
             break # changes UI
 
-        elseif inputs["show_info_btn"][] > 0
+        elseif inputs["run_search_btn"][] > 0
             inputs["show_info_btn"][] = 0
 
             @async for filename in merge(tracker["inputs"]["active"][], tracker["inputs"]["inactive"][])
