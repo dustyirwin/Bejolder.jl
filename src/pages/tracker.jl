@@ -97,13 +97,13 @@ tracker = Dict(
     "title" => "TRACKER ~ bejolder",
     "size" => (700, 375),
     "inputs" => Dict(
-        "push_right_btn"=>button(">>"),
-        "push_left_btn"=>button("<<"),
-        "run_search_btn"=>button("Run Search(es)"),
-        "filename_btn"=>filepicker("choose .bjs file..."),
-        "load_search_btn"=>button("^^ Load Search ^^"),
-        "create_search_btn"=>button("Create Search"),
-        "remove_search_btn"=>button("Remove Search(s)"),
+        "push_right_btn" => button(">>"),
+        "push_left_btn" => button("<<"),
+        "run_search_btn" => button("Run Search(es)"),
+        "filename_btn" => filepicker("choose .bjs file..."),
+        "load_search_btn" => button("^^ Load Search ^^"),
+        "create_search_btn" => button("Create Search"),
+        "remove_search_btn" => button("Remove Search(s)"),
         "active" => dropdown(searches["active"], label="Active Searches", multiple=true),
         "inactive" => dropdown(searches["inactive"], label="Inactive Searches", multiple=true),
         "track_searches" => toggle("TRACK SEARCHES"),
@@ -158,7 +158,7 @@ tracker["events"] = function(w::Window, inputs=tracker["inputs"])
             break # changes UI
 
         elseif inputs["run_search_btn"][] > 0
-            inputs["show_info_btn"][] = 0
+            inputs["run_search_btn"][] = 0
 
             @async for filename in merge(tracker["inputs"]["active"][], tracker["inputs"]["inactive"][])
                 JLD2.@load filename _search
