@@ -155,14 +155,15 @@ tracker["events"] = function(w::Window, inputs=tracker["inputs"])
         elseif inputs["remove_search_btn"][] > 0
             inputs["remove_search_btn"][] = 0
             remove_search(w, inputs)
-            break # changes UI
+            break  # changes UI
 
         elseif inputs["run_search_btn"][] > 0
             inputs["run_search_btn"][] = 0
 
             @async for filename in merge(tracker["inputs"]["active"][], tracker["inputs"]["inactive"][])
                 JLD2.@load filename _search
-                process_results(t, freeze(search["inputs"]), _search)
+                _search, _results = process_results(t, freeze(search["inputs"]), _search)
+                JLD2.@save filename _search
                 continue
             end
 
