@@ -195,10 +195,10 @@ tracker["events"] = function(w::Window, inputs=tracker["inputs"])
             end
 
             if i < 1  # sleep if any searches ran / blocks tracker inputs?
-                while inputs["track_searches"][] == true
-                    println("No searches ready. Sleeping...")
-                    sleep(1)
-
+                if inputs["track_searches"][] == true
+                    sleep_time = 10
+                    println("No searches ready. Sleeping for $sleep_time seconds...")
+                    sleep(sleep_time)
                 end
             end
 
