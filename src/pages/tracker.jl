@@ -162,9 +162,9 @@ tracker["events"] = function(w::Window, inputs=tracker["inputs"])
 
             @async for filename in merge(tracker["inputs"]["active"][], tracker["inputs"]["inactive"][])
                 JLD2.@load filename _search
+                search["inputs"]["keywords"][] = _search.queries[1].keywords
                 _search, _results = process_results(t, freeze(search["inputs"]), _search)
                 JLD2.@save filename _search
-                continue
             end
 
         elseif inputs["push_right_btn"][] > 0
@@ -195,7 +195,11 @@ tracker["events"] = function(w::Window, inputs=tracker["inputs"])
             end
 
             if i < 1  # sleep if any searches ran / blocks tracker inputs?
-                println("No searches ready. Sleeping..."); sleep(5)
+                while inputs["track_searches"][] == true
+                    println("No searches ready. Sleeping...")
+                    sleep(1)
+
+                end
             end
 
         else

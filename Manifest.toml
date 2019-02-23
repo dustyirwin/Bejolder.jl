@@ -192,9 +192,9 @@ version = "0.5.0"
 
 [[Interact]]
 deps = ["CSSUtil", "DataStructures", "InteractBase", "InteractBulma", "JSON", "Knockout", "Observables", "Reexport", "Test", "WebIO", "Widgets"]
-git-tree-sha1 = "102666d2d89a672c86bd33399a5f36c7e5d2b3b5"
+git-tree-sha1 = "759f0b5bb0359331e80bd9cd76bc38d519ba2847"
 uuid = "c601a237-2ae4-5e1e-952c-7a85b0c7eef1"
-version = "0.9.0"
+version = "0.9.1"
 
 [[InteractBase]]
 deps = ["Base64", "CSSUtil", "Colors", "DataStructures", "Dates", "JSExpr", "JSON", "Knockout", "Observables", "Random", "Test", "WebIO", "Widgets"]
@@ -203,10 +203,10 @@ uuid = "d3863d7c-f0c8-5437-a7b4-3ae773c01009"
 version = "0.8.3"
 
 [[InteractBulma]]
-deps = ["InteractBase", "Reexport", "Test"]
-git-tree-sha1 = "5dd3798331686a512ee98cc59a5b1f3d136cd926"
+deps = ["InteractBase", "Test"]
+git-tree-sha1 = "4f2fe609080165e326ac35afeeb9361e44de51b1"
 uuid = "7981ab7d-5bfa-5e03-9ec9-f3d4afc0a1ca"
-version = "0.4.2"
+version = "0.5.0"
 
 [[InteractiveUtils]]
 deps = ["Markdown"]
@@ -293,9 +293,9 @@ version = "0.5.1"
 
 [[MacroTools]]
 deps = ["Compat"]
-git-tree-sha1 = "c443e1c8d58a4e9f61b708ad0a88286c7042145b"
+git-tree-sha1 = "3fd1a3022952128935b449c33552eb65895380c1"
 uuid = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
-version = "0.4.4"
+version = "0.4.5"
 
 [[Markdown]]
 deps = ["Base64"]
